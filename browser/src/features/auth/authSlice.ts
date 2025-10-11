@@ -13,15 +13,19 @@ interface User {
 interface AuthState {
   user: User | null;
   token: string | null;
+  refreshToken: string | null;
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
   error: string | null;
+  rememberMe: boolean;
 }
 
 const initialState: AuthState = {
-  user: JSON.parse(localStorage.getItem('user') || 'null'),
-  token: localStorage.getItem('token'),
+  user: JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null'),
+  token: localStorage.getItem('token') || sessionStorage.getItem('token'),
+  refreshToken: localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken'),
   status: 'idle',
   error: null,
+  rememberMe: localStorage.getItem('rememberMe') === 'true',
 };
 
 // GraphQL mutations
