@@ -6,7 +6,7 @@ Social media Web App that you are trying to pronounce Reddit, we definitely know
 
 ## Tech Stack
 - Frontend: JavaScripts witt ReactJS frameworks
-- Server: Python with NodeJS, Socket.io
+- Server: Python with FastAPI, Flask DB, Socket.io
 ---
 ## Features
 We don't know yet. What do you expect this to have.
