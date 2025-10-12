@@ -2,7 +2,7 @@
     import axios from "axios";
     import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
-    // --- 1. Interface Definitions ---
+    // Interface Definitions
 
     /** Defines the structure of the user object stored in state and localStorage. */
     interface User {
@@ -25,7 +25,7 @@
     children: ReactNode;
     }
 
-    // --- 2. Context Initialization ---
+    // Context Initialization
 
     // Define a default value for the context that matches the AuthContextValue interface
     const defaultAuthContextValue: AuthContextValue = {
@@ -37,7 +37,7 @@
 
     const AuthContext = createContext<AuthContextValue>(defaultAuthContextValue);
 
-    // --- 3. AuthProvider Component ---
+    // AuthProvider Component
 
     export function AuthProvider({ children }: AuthProviderProps) {
     const queryClient = useQueryClient();
@@ -128,8 +128,7 @@
     );
     }
 
-    // --- 4. Custom Hook for Context Consumption ---
-
+    // -- Custom Hook for Context Consumption --
     /**
      * Hook to access the authentication context values and functions.
      * @returns {AuthContextValue} The authentication state and methods.
