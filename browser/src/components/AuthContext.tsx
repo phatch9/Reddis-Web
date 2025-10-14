@@ -93,7 +93,7 @@
         setUser(userInfo);
         setIsAuthenticated(true);
         // Invalidate queries to fetch user-specific data after login
-        queryClient.invalidateQueries(); 
+        queryClient.invalidateQueries();
     }
 
     /**
@@ -114,11 +114,11 @@
     }
 
     // Define the context value object
-    const value: AuthContextValue = { 
-        isAuthenticated, 
-        login, 
-        logout, 
-        user 
+    const value: AuthContextValue = {
+        isAuthenticated,
+        login,
+        logout,
+        user
     };
 
     return (

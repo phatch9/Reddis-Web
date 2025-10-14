@@ -3,7 +3,7 @@ import axios from "axios";
 import Markdown from "markdown-to-jsx";
 import { useState, FormEvent, ChangeEvent } from "react";
 import avatar from "../assets/avatar.png";
-import useAuth from "./AuthContext"; // Using the previously defined useAuth hook
+import useAuth from "./authContext"; // Using the previously defined useAuth hook
 import Loader from "./Loader";
 import { ThreadSearch } from "./Navbar"; // Assuming ThreadSearch interface/type is correct
 import Svg from "./Svg"; // Assuming Svg component interface/type is correct
