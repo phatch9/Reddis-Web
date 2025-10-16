@@ -72,17 +72,16 @@ const SideBarComponent: FC<SideBarComponentProps> = ({ threadList }) => {
  * Uses useQuery for data fetching.
  */
 export function ReddisSidebar() {
-    // Use the ThreadData interface for the useQuery response
+    // Use the RedditData interface for the useQuery response
     const { data, isLoading, isError } = useQuery<ReddisData>({
-        queryKey: ["threads/all"],
-        queryFn: async () => {
-            // Using a simple delay to simulate network latency for a better loading experience
-            await new Promise(resolve => setTimeout(resolve, 500));
-            return await axios.get("/api/threads").then((res) => res.data);
-        },
-        // Enable retries if there's a network issue
-        retry: 2,
-    });
+    queryKey: ["threads/all"],
+    queryFn: async (): Promise<ReddisData> => {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const res = await axios.get<ReddisData>("/api/threads");
+        return res.data;
+    },
+    retry: 2,
+});
 
     // In a production app, use an Error/Loader component here.
     if (isLoading) {
