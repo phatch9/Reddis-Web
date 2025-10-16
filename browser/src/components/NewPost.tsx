@@ -2,13 +2,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import Markdown from "markdown-to-jsx";
 import { useState, FormEvent, ChangeEvent } from "react";
-import avatar from "../assets/avatar.png";
+// import avatar from "../assets/avatar.png";
 import useAuth from "./authContext"; // Using the previously defined useAuth hook
 import Loader from "./Loader";
-import { ThreadSearch } from "./Navbar"; // Assuming ThreadSearch interface/type is correct
+import { ThreadSearch } from "./Navbar";
 import Svg from "./Svg"; // Assuming Svg component interface/type is correct
 
-// --- 1. Interface Definitions ---
+// Interface Definitions
 
 interface PostInfo {
     id: number;
@@ -38,10 +38,10 @@ interface NewPostProps {
 // --- 2. Component Implementation ---
 
 export default function NewPost({ 
-    setShowModal, 
-    isEdit = false, 
-    postInfo = {}, 
-    threadInfo = {} 
+    setShowModal,
+    isEdit = false,
+    postInfo = {},
+    threadInfo = {}
 }: NewPostProps) {
     const queryClient = useQueryClient();
     
@@ -117,17 +117,16 @@ export default function NewPost({
                 } else {
                     // EDIT POST
                     if (!postInfo.id) {
-                         setErrorMessage("Cannot edit post: Post ID is missing.");
-                         return;
+                        setErrorMessage("Cannot edit post: Post ID is missing.");
+                        return;
                     }
 
-                    const res = await axios
-                        .patch(`/api/post/${postInfo.id}`, formData, { headers: { "Content-Type": "multipart/form-data" } });
-                    
-                    // Update cache for the specific post details view
-                    queryClient.setQueryData(["post/comment", `${postInfo.id}`], (oldData: any) => {
-                        return { ...oldData, post_info: res.data.new_data };
+                    const res = await axios.patch<{ new_data: PostInfo }>(`/api/post/${postInfo.id}`, formData, {
+                        headers: { "Content-Type": "multipart/form-data" },
                     });
+                    queryClient.setQueryData(["post/comment", `${postInfo.id}`], (oldData: any) => ({...oldData, 
+                        post_info: res.data.new_data,
+                    })); // Update post data in cache
                 }
                 
                 // On success
@@ -147,14 +146,14 @@ export default function NewPost({
             <div className="flex flex-col items-center justify-between p-4 space-y-3 bg-white rounded-xl md:flex-row md:space-y-0">
                 <div className="flex items-center space-x-3">
                     <p>{isEdit ? "Editing" : "Posting"} as</p>
-                    <img 
-                        src={user.avatar || avatar} 
-                        className="object-cover w-8 h-8 rounded-full md:w-12 md:h-12" 
-                        alt="User avatar" 
+                    <img
+                        src={user.avatar || avatar}
+                        className="object-cover w-8 h-8 rounded-full md:w-12 md:h-12"
+                        alt="User avatar"
                     />
                     <p>{user.username}</p>
                 </div>
-                {status === "loading" && <Loader forPosts={true} />}
+                {status === "pending" && <Loader forPosts={true} />}
                 <div className="flex items-center mr-2 space-x-2 md:space-x-3">
                     <p className="hidden md:block">{isEdit ? "Editing" : "Posting"} on</p>
                     <p className="md:hidden">On</p>
@@ -267,9 +266,9 @@ export default function NewPost({
                 
                 <button
                     type="submit"
-                    disabled={status === "loading"}
+                    disabled={status === "pending"}
                     className="py-2 font-semibold text-white rounded-md bg-theme-orange hover:bg-orange-600 active:scale-95 transition-all disabled:bg-gray-400">
-                    {status === "loading" ? "Submitting..." : isEdit ? "Save Changes" : "Create Post"}
+                    {status === "pending" ? "Submitting..." : isEdit ? "Save Changes" : "Create Post"}
                 </button>
             </form>
         </div>
