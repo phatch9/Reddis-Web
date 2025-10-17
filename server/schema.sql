@@ -131,16 +131,16 @@ CREATE VIEW public.post_info AS
                     WHEN (r.is_upvote = false) THEN '-1'::integer
                     ELSE 0
                 END), (0)::bigint) AS karma
-           FROM (public.posts p_1
-             FULL JOIN public.reactions r ON ((r.post_id = p_1.id)))
-          GROUP BY p_1.id) k ON ((k.post_id = p.id)))
-     JOIN ( SELECT p_1.id AS post_id,
+        FROM (public.posts p_1
+            FULL JOIN public.reactions r ON ((r.post_id = p_1.id)))
+        GROUP BY p_1.id) k ON ((k.post_id = p.id)))
+    JOIN ( SELECT p_1.id AS post_id,
             count(c_1.id) AS comments_count
-           FROM (public.posts p_1
-             FULL JOIN public.comments c_1 ON ((c_1.post_id = p_1.id)))
-          GROUP BY p_1.id) c ON ((c.post_id = p.id)))
-     JOIN public.subthreads t ON ((t.id = p.subthread_id)))
-     JOIN public.users u ON ((u.id = p.user_id)));
+        FROM (public.posts p_1
+        FULL JOIN public.comments c_1 ON ((c_1.post_id = p_1.id)))
+        GROUP BY p_1.id) c ON ((c.post_id = p.id)))
+    JOIN public.subthreads t ON ((t.id = p.subthread_id)))
+    JOIN public.users u ON ((u.id = p.user_id)));
 
 CREATE SEQUENCE public.posts_id_seq
     AS integer
@@ -161,3 +161,88 @@ CREATE SEQUENCE public.reactions_id_seq
     CACHE 1;
 
 ALTER SEQUENCE public.reactions_id_seq OWNED BY public.reactions.id;
+
+CREATE TABLE public.roles (
+    id integer NOT NULL,
+    name text NOT NULL,
+    slug text NOT NULL
+);
+
+CREATE SEQUENCE public.roles_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE public.roles_id_seq OWNED BY public.roles.id;
+
+CREATE TABLE public.saved (
+    id integer NOT NULL,
+    user_id integer NOT NULL,
+    post_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE SEQUENCE public.saved_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE public.saved_id_seq OWNED BY public.saved.id;
+
+CREATE TABLE public.subscriptions (
+    id integer NOT NULL,
+    user_id integer  NOT NULL,
+    subthread_id integer  NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE SEQUENCE public.subscriptions_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE public.subscriptions_id_seq OWNED BY public.subscriptions.id;
+
+CREATE VIEW public.subthread_info AS
+SELECT subthreads.id,
+    subthreads.name,
+    subthreads.logo,
+    mcount.members_count,
+    pcount.posts_count,
+    ccount.comments_count
+FROM (((public.subthreads
+    FULL JOIN ( SELECT subthreads_1.id AS subthread_id,
+            count(*) AS members_count
+        FROM (public.subthreads subthreads_1
+            JOIN public.subscriptions ON ((subscriptions.subthread_id = subthreads_1.id)))
+        GROUP BY subthreads_1.id) mcount ON ((mcount.subthread_id = subthreads.id)))
+    FULL JOIN ( SELECT subthreads_1.id AS subthread_id,
+            count(*) AS posts_count
+        FROM (public.subthreads subthreads_1
+            JOIN public.posts ON ((posts.subthread_id = subthreads_1.id)))
+        GROUP BY subthreads_1.id) pcount ON ((pcount.subthread_id = subthreads.id)))
+    FULL JOIN ( SELECT subthreads_1.id AS subthread_id,
+            count(*) AS comments_count
+        FROM ((public.subthreads subthreads_1
+            JOIN public.posts ON ((posts.subthread_id = subthreads_1.id)))
+            JOIN public.comments ON ((comments.post_id = posts.id)))
+        GROUP BY subthreads_1.id) ccount ON ((ccount.subthread_id = subthreads.id)));
+
+CREATE SEQUENCE public.subthreads_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE public.subthreads_id_seq OWNED BY public.subthreads.id;
