@@ -246,3 +246,84 @@ CREATE SEQUENCE public.subthreads_id_seq
     CACHE 1;
 
 ALTER SEQUENCE public.subthreads_id_seq OWNED BY public.subthreads.id;
+
+CREATE VIEW public.user_info AS
+ SELECT u.id AS user_id,
+    (c.karma + p.karma) AS user_karma,
+    c.comments_count,
+    c.karma AS comments_karma,
+    p.posts_count,
+    p.karma AS posts_karma
+   FROM ((public.users u
+     JOIN ( SELECT u_1.id AS user_id,
+            count(c_1.id) AS comments_count,
+            COALESCE(sum(
+                CASE
+                    WHEN ((r.is_upvote = true) AND (r.comment_id IS NOT NULL)) THEN 1
+                    WHEN ((r.is_upvote = false) AND (r.comment_id IS NOT NULL)) THEN '-1'::integer
+                    ELSE 0
+                END), (0)::bigint) AS karma
+           FROM ((public.users u_1
+             FULL JOIN public.comments c_1 ON ((c_1.user_id = u_1.id)))
+             FULL JOIN public.reactions r ON ((r.comment_id = c_1.id)))
+          GROUP BY u_1.id) c ON ((c.user_id = u.id)))
+     JOIN ( SELECT u_1.id AS user_id,
+            count(p_1.id) AS posts_count,
+            COALESCE(sum(
+                CASE
+                    WHEN ((r.is_upvote = true) AND (r.post_id IS NOT NULL)) THEN 1
+                    WHEN ((r.is_upvote = false) AND (r.post_id IS NOT NULL)) THEN '-1'::integer
+                    ELSE 0
+                END), (0)::bigint) AS karma
+           FROM ((public.users u_1
+             FULL JOIN public.posts p_1 ON ((p_1.user_id = u_1.id)))
+             FULL JOIN public.reactions r ON ((r.post_id = p_1.id)))
+          GROUP BY u_1.id) p ON ((p.user_id = u.id)));
+
+CREATE TABLE public.user_roles (
+    id integer NOT NULL,
+    user_id integer NOT NULL,
+    role_id integer NOT NULL,
+    subthread_id integer,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE SEQUENCE public.user_roles_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE public.user_roles_id_seq OWNED BY public.user_roles.id;
+
+CREATE SEQUENCE public.users_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
+
+ALTER TABLE ONLY public.comments ALTER COLUMN id SET DEFAULT nextval('public.comments_id_seq'::regclass);
+
+ALTER TABLE ONLY public.messages ALTER COLUMN id SET DEFAULT nextval('public.messages_id_seq'::regclass);
+
+ALTER TABLE ONLY public.posts ALTER COLUMN id SET DEFAULT nextval('public.posts_id_seq'::regclass);
+
+ALTER TABLE ONLY public.reactions ALTER COLUMN id SET DEFAULT nextval('public.reactions_id_seq'::regclass);
+
+ALTER TABLE ONLY public.roles ALTER COLUMN id SET DEFAULT nextval('public.roles_id_seq'::regclass);
+
+ALTER TABLE ONLY public.saved ALTER COLUMN id SET DEFAULT nextval('public.saved_id_seq'::regclass);
+
+ALTER TABLE ONLY public.subscriptions ALTER COLUMN id SET DEFAULT nextval('public.subscriptions_id_seq'::regclass);
+
+ALTER TABLE ONLY public.subthreads ALTER COLUMN id SET DEFAULT nextval('public.subthreads_id_seq'::regclass);
+
+ALTER TABLE ONLY public.user_roles ALTER COLUMN id SET DEFAULT nextval('public.user_roles_id_seq'::regclass);
+
+ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
