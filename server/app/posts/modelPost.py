@@ -1,14 +1,14 @@
 from marshmallow import validate
-from reddis import db, ma, app
+from app import db, ma, app
 import uuid
 from flask import url_for
 from datetime import datetime, timedelta
 import cloudinary.uploader as uploader
 from werkzeug.utils import secure_filename
-from reddis.subthreads.models import Subthread
+from app.subthreads.models import Subthread
 from flask_marshmallow.fields import fields
 from marshmallow.exceptions import ValidationError
-from reddis.reactions.models import Reactions
+from app.reactions.models import Reactions
 
 
 class Posts(db.Model):

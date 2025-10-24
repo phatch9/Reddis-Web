@@ -1,12 +1,12 @@
 
 from flask import Blueprint, request, jsonify
-from reddis import db
-from reddis.users.models import (
+from app import db
+from app.users.models import (
     UserLoginValidator,
     UserRegisterValidator,
     User,
 )
-from reddis.auth.decorators import auth_role
+from app.auth.decorators import auth_role
 from bcrypt import hashpw, checkpw, gensalt
 from flask_login import login_user, logout_user, current_user, login_required
 

@@ -1,9 +1,9 @@
 from sqlalchemy import func
 import cloudinary.uploader as uploader
 import uuid
-from threaddit import db, login_manager, app
+from app import db, login_manager, app
 from flask_login import UserMixin
-from threaddit import ma, app
+from app import ma, app
 from flask_marshmallow.fields import fields
 from marshmallow.exceptions import ValidationError
 

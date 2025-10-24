@@ -1,8 +1,8 @@
-from reddis.messages.models import Messages
+from app.messages.models import Messages
 from flask import Blueprint, jsonify, request
-from reddis import db
+from app import db
 from sqlalchemy import and_
-from reddis.users.models import User
+from app.user.models import User
 from flask_login import login_required, current_user
 
 messages = Blueprint("messages", __name__, url_prefix="/api")
