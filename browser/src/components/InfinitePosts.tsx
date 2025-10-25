@@ -207,8 +207,8 @@ return (
         {data?.pages.map((pageData, index) => (
             <ul className="flex flex-col space-y-2 md:space-y-3" key={index}>
             {/* AnimatePresence on the page level can cause issues on infinite scroll,
-                but we'll keep the inner AnimatePresence for individual post animations if needed. 
-                We remove the initial={index == 0} property as it's not a standard prop 
+                but we'll keep the inner AnimatePresence for individual post animations if needed.
+                We remove the initial={index == 0} property as it's not a standard prop
                 and might cause warnings unless it's a custom variant or state. */}
             <AnimatePresence>
                 {pageData?.map((post, postIndex) => (
