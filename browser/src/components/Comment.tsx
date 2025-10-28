@@ -290,5 +290,72 @@ return (
 );
 }
 
+// Comment Input Component
+
+export const CommentMode: FC<CommentModeProps> = ({ user, colorSquence, callBackSubmit, callBackCancel, defaultValue = null }) => {
+const { isAuthenticated } = useAuth();
+const [preMD, setPreMD] = useState(false);
+const [content, setContent] = useState(defaultValue || "");
+
+return (
+    <motion.div
+    initial={{ opacity: 0, y: -10 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -10, transition: { duration: 0.15 } }}
+    transition={{ duration: 0.25 }}
+    className={`mr-4 space-y-2 bg-white md:text-base ${
+        defaultValue !== null ? "" : `border-l-2 ${colorSquence ? colorSquence() : 'border-gray-200'} py-3 pl-2 `
+    }`}>
+    <div className="flex items-center space-x-2 text-sm font-medium">
+        <img src={user.avatar || avatar} alt="" className="object-cover w-5 h-5 rounded-full" />
+        <Link to={`/u/${user.username}`}>{user.username}</Link>
+    </div>
+    <form
+        method="post"
+        className="flex flex-col space-y-2"
+        onSubmit={(e) => {
+        e.preventDefault();
+        if (isAuthenticated) {
+            callBackSubmit(content);
+        } else {
+            console.error("User must be logged in to comment.");
+            // In a real app, trigger a login modal
+        }
+        }}>
+        {preMD ? (
+        <div className="overflow-auto p-2 max-w-full h-24 rounded-md border prose">
+            <Markdown options={{ forceBlock: true }}>
+            {content.replace(/\n/g, "<br />\n") || "This is markdown preview"}
+            </Markdown>
+        </div>
+        ) : (
+        <textarea
+            autoFocus
+            value={content} // Use controlled component
+            onChange={(e) => setContent(e.target.value)}
+            className="p-2 w-full h-24 text-sm rounded-md border md:text-base focus:outline-none"
+        />
+        )}
+        <div className="flex self-end space-x-2">
+        <button type="submit" className="px-2 py-1 font-bold text-white bg-blue-600 rounded-md md:px-5 active:scale-95">
+            Submit
+        </button>
+        <button
+            onClick={() => setPreMD(!preMD)}
+            type="button"
+            className="px-2 py-1 font-bold text-white bg-green-600 rounded-md md:px-5 active:scale-95">
+            {preMD ? "Close Preview" : "Preview"}
+        </button>
+        <button
+            onClick={() => callBackCancel()}
+            type="button" // Specify type to prevent form submission
+            className="px-2 py-1 font-bold text-white bg-red-600 rounded-md md:px-5 active:scale-95">
+            Cancel
+        </button>
+        </div>
+    </form>
+    </motion.div>
+    );
+}
 
 export default Comment;
