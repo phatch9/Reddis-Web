@@ -146,6 +146,149 @@ const {
     comment,
 });
 
+const { isAuthenticated, user } = useAuth(); // Replaced AuthConsumer
+const timePassed = timeAgo(new Date(commentInfo.created_at));
+
+function handleSelect(value: string) {
+    switch (value) {
+    case "delete":
+        if (parentDelete) {
+        parentDelete(commentInfo.id);
+        } else {
+        deleteComment();
+        }
+        if (listRef.current) listRef.current.value = "more";
+        break;
+    case "edit":
+        setEditMode(true);
+        break;
+    case "share":
+        copyToClipboard(window.location.href); // Replaced alert
+        if (listRef.current) listRef.current.value = "more";
+        break;
+    }
+}
+
+return (
+    <motion.li
+    className={`py-3 pl-2 space-y-2 w-full bg-white rounded-xl md:text-base ${!parentDelete && "border"}`}
+    initial={{ opacity: 0, y: -10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.25, delay: commentIndex * 0.15 }}
+    exit={{ opacity: 0, y: -10, transition: { duration: 0.1 } }}>
+    {editMode ? (
+        <CommentMode
+        callBackSubmit={(data) => {
+            updateComment(data);
+            setEditMode(false);
+            if (listRef.current) listRef.current.value = "more";
+        }}
+        callBackCancel={() => {
+            setEditMode(false);
+            if (listRef.current) listRef.current.value = "more";
+        }}
+        defaultValue={commentInfo.content}
+        user={user as UserType} // Assert user type if useAuth() returns a broader type
+        />
+    ) : (
+        <>
+        <div className="flex items-center space-x-2 text-sm font-medium">
+            <img loading="lazy" width="20" height="20" src={userInfo.user_avatar || avatar} alt="" className="object-cover w-5 h-5 rounded-full" />
+            <Link to={`/u/${userInfo.user_name}`} className="font-medium text-blue-600 hover:underline">
+            {userInfo.user_name}
+            </Link>
+            <p>{timePassed}</p>
+            {commentInfo.is_edited && <p>(Edited)</p>}
+        </div>
+        <div className="max-w-full text-black prose prose-sm md:prose-base prose-blue">
+            <Markdown className="[&>*:first-child]:mt-0">{commentInfo.content}</Markdown>
+        </div>
+        </>
+    )}
+    <div className="flex justify-around items-center md:justify-between md:mx-10">
+        {isAuthenticated && user && (user.username === userInfo.user_name || user.mod_in.includes(threadID) || user.roles.includes("admin")) ? (
+        <select
+            defaultValue={"more"}
+            ref={listRef}
+            name="more-options"
+            title="More Options"
+            id="more-options"
+            className="text-sm bg-white md:px-2 md:text-base"
+            onChange={(e: ChangeEvent<HTMLSelectElement>) => handleSelect(e.target.value)}>
+            <option value="more">More</option>
+            <option value="share">Share</option>
+            {user.username === userInfo.user_name && <option value="edit">Edit</option>}
+            <option value="delete">Delete</option>
+        </select>
+        ) : (
+        <div className="flex items-center space-x-1 cursor-pointer" onClick={() => copyToClipboard(window.location.href)}>
+            <Svg type="share" className="w-4 h-4" />
+            <p className="text-sm md:text-base">Share</p>
+        </div>
+        )}
+        <div
+        className="flex items-center space-x-1 cursor-pointer"
+        onClick={() => {
+            if (!isAuthenticated) {
+            console.error("User must be logged in to reply.");
+            // In a real app, trigger a login modal
+            } else {
+            setIsReply(!isReply);
+            }
+        }}>
+        <Svg type="comment" className="w-4 h-4" />
+        <p className="text-sm md:text-base">Reply</p>
+        </div>
+        <div
+        className={`${!commentChildren.length && "invisible"} flex items-center space-x-1 cursor-pointer`}
+        onClick={() => setExpandChildren(!expandChildren)}>
+        <Svg type="down-arrow" className={`w-4 h-4 transition-transform ${expandChildren && "rotate-180"}`} />
+        <p className="text-sm md:text-base">{expandChildren ? "Hide" : "Show"}</p>
+        </div>
+        <div className="flex items-center space-x-2 text-sm md:text-base">
+        <Vote
+            url="/api/reactions/comment"
+            initialVote={currentUser?.has_upvoted} // Fixed typo from intitalVote
+            initialCount={commentInfo.comment_karma}
+            contentID={commentInfo.id}
+            type="mobile"
+        />
+        </div>
+    </div>
+    {isReply && (
+        <CommentMode
+        callBackSubmit={(data) => {
+            if (listRef.current) listRef.current.value = "more";
+            addComment(data);
+            setIsReply(false);
+            setExpandChildren(true);
+        }}
+        callBackCancel={() => {
+            setIsReply(false);
+            if (listRef.current) listRef.current.value = "more";
+        }}
+        colorSquence={colorSquence}
+        user={user as UserType} // Assert user type
+        />
+    )}
+    <AnimatePresence mode="wait">
+        {expandChildren && (
+        <ul className={commentChildren.length > 0 && expandChildren ? "border-l-2 " + colorSquence() : ""}>
+            {commentChildren.map((child, index) => (
+            <Comment
+                key={child.comment.comment_info.id}
+                {...child}
+                commentIndex={index}
+                parentDelete={deleteComment}
+                threadID={threadID} // Pass threadID down
+            />
+            ))}
+        </ul>
+        )}
+    </AnimatePresence>
+    </motion.li>
+);
+}
 
 
 export default Comment;
