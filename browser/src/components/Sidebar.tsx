@@ -33,8 +33,8 @@ const SideBarComponent: FC<SideBarComponentProps> = ({ threadList }) => {
     <div className="flex flex-col space-y-4 w-48 list-none">
       {/* Slice to show top 10, then map over them */}
         {threadList?.slice(0, 10).map((thread) => (
-        <Link 
-            to={`/${thread.name}`} 
+        <Link
+            to={`/${thread.name}`}
             className="flex justify-between items-center w-48 cursor-pointer hover:bg-gray-100 p-1 rounded-md" 
           key={thread.id || thread.name} // Use ID if available, fallback to name
         >
@@ -66,11 +66,11 @@ const SideBarComponent: FC<SideBarComponentProps> = ({ threadList }) => {
 /**
  * Main sidebar component that fetches and displays thread lists.
  */
-export function ThreadsSidebar() {
-  const { data, isLoading, isError } = useQuery<ThreadData, Error>({
+export function Sidebar() {
+    const { data, isLoading, isError } = useQuery<ThreadData, Error>({
     queryKey: ["threads/all"],
     queryFn: async () => {
-      return await axios.get("/api/threads").then((res) => res.data);
+        return await axios.get("/api/threads").then((res) => res.data);
     },
   });
 
@@ -111,15 +111,15 @@ if (isError) {
       {/* Top Threads */}
       <div className="flex flex-col m-5 space-y-4">
         <div className="flex justify-between w-48 cursor-pointer">
-          <h2 className="font-semibold uppercase">Top Threads</h2>
-          <span className="pr-1">ALL</span>
+            <h2 className="font-semibold uppercase">Top Threads</h2>
+            <span className="pr-1">ALL</span>
         </div>
         <SideBarComponent threadList={data?.all} />
-      </div>
-      <span className="mx-5 border border-theme-silver-chalice"></span>
+        </div>
+        <span className="mx-5 border border-theme-silver-chalice"></span>
 
       {/* Popular Threads */}
-      <div className="flex flex-col m-5 space-y-4">
+        <div className="flex flex-col m-5 space-y-4">
         <div className="flex justify-between w-48 cursor-pointer">
             <h2 className="font-semibold uppercase">Popular Threads</h2>
             <span className="pr-1">ALL</span>
@@ -130,5 +130,5 @@ if (isError) {
     );
 }
 
-export default ThreadsSidebar;
+export default Sidebar;
 

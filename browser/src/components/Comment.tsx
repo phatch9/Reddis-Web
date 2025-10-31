@@ -1,8 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import Markdown from "markdown-to-jsx";
 import { FC, useRef, useState, ChangeEvent } from "react";
-import { Link } from "react-router-dom";
-import avatar from "../assets/avatar.png";
+import { Link } from "react-router-dom";;
 import useComment from "../hooks/useComment";
 import { timeAgo } from "../pages/fullPost/utils";
 import { useAuth } from "./AuthContext"; // Changed from AuthConsumer
@@ -76,10 +75,8 @@ callBackCancel: () => void;
 defaultValue?: string | null;
 }
 
-/**
- * Safely copies text to the clipboard with a fallback for iFrame environments.
- * @param text The text to copy.
- */
+/** Safely copies text to the clipboard with a fallback for iFrame environments.
+ * @param text The text to copy.*/
 function copyToClipboard(text: string) {
 if (navigator.clipboard && window.isSecureContext) {
     navigator.clipboard.writeText(text).then(() => {
@@ -94,7 +91,8 @@ if (navigator.clipboard && window.isSecureContext) {
 }
 }
 
-/** Fallback copy method using document.execCommand. */
+/* Fallback copy method using document.execCommand. */
+
 function fallbackCopy(text: string) {
 const textArea = document.createElement("textarea");
 textArea.value = text;
