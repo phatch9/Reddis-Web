@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { FC, useRef, ReactNode, MouseEvent } from "react";
+import { FC, useRef, ReactNode } from "react";
 import useEventListener from "../hooks/useEventListener";
 
 // Type Definitions
