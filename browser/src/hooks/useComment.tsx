@@ -3,7 +3,7 @@ import axios from "axios";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 
-// -- Interface Definitions --
+// Interface Definitions
 
 /** core comment data. */
 type CommentInfo = {
@@ -13,7 +13,6 @@ post_id?: string | number;
 parent_id: string | number | null;
 has_parent: boolean;
 is_edited: boolean;
-// Add any other expected fields like createdAt, etc.
 };
 
 /** user made the comment */
@@ -60,7 +59,7 @@ comment_info: ChildCommentWrapper[];
 // Other post details might be here
 };
 
-// --- Constants and Globals ---
+// Constants and Globals
 
 const borderColors: string[] = [
 "border-yellow-400",
@@ -73,8 +72,7 @@ const borderColors: string[] = [
 
 let curColor: number = 0;
 
-// --- Hook Implementation ---
-
+// Hook Implementation
 /**
  * Custom hook to manage the state and actions for a single comment,
  * including adding replies, editing, and deleting.
@@ -96,8 +94,6 @@ const [
     { comment_info: commentInfo, user_info: userInfo, current_user: currentUser },
     setCommentInfo,
 ] = useState<CommentData>(comment);
-
-// --- Mutations ---
 
 // Mutation for adding a reply to the current comment
 const { mutate: addComment } = useMutation({
@@ -192,7 +188,7 @@ function colorSquence(): string {
     return borderColors[curColor++];
 }
 
-// --- 4. Hook Return Type ---
+// Hook Return Type
 
 return {
     commentChildren,

@@ -4,12 +4,12 @@ import { FC, useRef, useState, ChangeEvent } from "react";
 import { Link } from "react-router-dom";;
 import useComment from "../hooks/useComment";
 import { timeAgo } from "../pages/fullPost/utils";
-import { useAuth } from "./AuthContext"; // Changed from AuthConsumer
+import { useAuth } from "./AuthContext";
 import Svg from "./Svg";
 import Vote from "./Vote";
 
 // Type Definitions
-// From AuthContext (inferred)
+// From AuthContext
 interface UserType {
 username: string;
 avatar?: string;
