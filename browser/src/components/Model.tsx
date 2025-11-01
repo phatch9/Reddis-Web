@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { FC, useRef, ReactNode, MouseEvent } from "react";
+import useEventListener from "../hooks/useEventListener";
 
 // Type Definitions
 interface ModelProps {
@@ -19,18 +20,22 @@ interface ModelProps {
 
 export const Model: FC<ModelProps> = ({ children, setShowModel }) => {
     const backdropRef = useRef<HTMLDivElement>(null);
-
-    const handleBackdropClick = (e: MouseEvent<HTMLDivElement>) => {
+    // Close model on backdrop click
+    useEventListener ("click", (e:Event) => {
         if (e.target === backdropRef.current && setShowModel) {
             setShowModel(false);
         }
-    };
+    // Close model on "Escape" key press
+    if (e instanceof KeyboardEvent && e.key === "Escape" && setShowModel) {
+        setShowModel(false); }
+    },
+    document // Ensure the listener added to the document
+);
 
     return (
         <motion.div
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
             ref={backdropRef}
-            onClick={handleBackdropClick}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
