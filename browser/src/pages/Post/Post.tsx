@@ -9,11 +9,9 @@ import Loader from "../../components/Loader";
 // Post.tsx exports PostDataType and PostProps
 import Post, { PostDataType } from "../../components/Post";
 
-// Type Definitions
+// Type Definition
 
-/**
- * Type for the URL parameters.
- */
+/** the URL parameters. */
 interface FullPostParams extends Record<string, string> {
     postId: string;
 }
@@ -48,17 +46,16 @@ export const FullPost: FC = () => {
     enabled: !!postId, // Ensure postId is available before querying
   });
 
-  /**
-   * Mutation to add a new top-level comment to the post.
-   */
-  const { mutate: newComment, isPending: isCommenting } = useMutation<
-    { new_comment: CommentDataType }, // Expected success response
-    Error, // Error type
-    string // Type of the variable passed to mutate (content)
-  >({
+  /* Mutation to add a new top-level comment to the post.*/
+
+    const { mutate: newComment, isPending: isCommenting } = useMutation <
+    { new_comment: CommentDataType },
+    Error,
+    string
+    >({
     mutationFn: async (content: string) => {
-      return await axios
-        .post("/api/comments", { post_id: postId, content })
+        return await axios
+        .post("/api/comments", { post_id: postId, content }) // axios.post() returns AxiosResponse<any>, so res.data is inferred as unknown
         .then((res) => res.data);
     },
     onSuccess: (data) => {
@@ -77,11 +74,11 @@ export const FullPost: FC = () => {
     },
     onError: (error) => {
         console.error("Failed to post comment:", error);
-        // In a real app, you would set an error state to show the user
+        // In a real app, it will set an error state to show the user
         },
     });
 
-  // Render Logic
+    /* Render Logic */
 
     if (isFetching) {
         return (
@@ -115,7 +112,7 @@ export const FullPost: FC = () => {
         />
       </ul>
 
-      {/* Show top-level comment input box if toggled */}
+    {/* Show top-level comment input box if toggled */}
       {commentMode && isAuthenticated && user && (
         <div className="py-3 pl-2 space-y-2 w-full bg-white rounded-xl md:text-base">
           <CommentMode
@@ -123,7 +120,7 @@ export const FullPost: FC = () => {
             defaultValue=""
             callBackSubmit={newComment} // Pass the mutation function
             callBackCancel={() => setCommentMode(false)}
-            // colorSquence is optional in CommentMode, so this is fine
+            isSubmitting={isCommenting}
           />
         </div>
       )}
