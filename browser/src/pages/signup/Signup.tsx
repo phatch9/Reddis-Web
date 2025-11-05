@@ -100,8 +100,7 @@ const Svg: React.FC<{ type: 'eye-open' | 'eye-close' | 'arrow-right', className:
     );
 };
 
-// --- END MOCK IMPLEMENTATIONS ---
-
+// END MOCK
 
 export function Signup() {
     // State Typing
@@ -118,9 +117,9 @@ export function Signup() {
     const { mutate, status, error } = useMutation<AuthResponseData, RegisterError>({
         // The mutation function must be an async function that returns a Promise<AuthResponseData>
         mutationFn: async () => {
-            console.log(`Mock API call: Registering user ${username}...`);
+            console.log(`Mock API call: Signing up user ${username}...`);
 
-            // --- Mocking the axios call and error structure for Register ---
+            // Mocking the axios call and error structure for Sign up
             if (username === "fail") {
                  // Simulate validation errors
                  throw {
@@ -139,7 +138,7 @@ export function Signup() {
             }
             // Fallback error
             throw { response: { data: { message: "Internal server error." } } } as RegisterError;
-            // --- End Mock Logic ---
+            // End Mock Logic
         },
         onSuccess: () => navigate("/home"),
     });
