@@ -198,4 +198,138 @@ export function Profile() {
     }, [logout]);
 
     // Modal Content for the main action state
-    
+    const isModalOpen = action !== false && typeof action !== 'string';
+
+    return (
+        <div className="flex flex-col flex-1 items-center w-full bg-gray-50 min-h-screen font-inter">
+            <div className="w-full max-w-3xl p-4">
+                {userIsFetching ? (
+                    <div className="mt-10">
+                        <Loader forPosts={true} />
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center w-full bg-gray-50">
+                        <div className="flex flex-col p-4 w-full bg-white rounded-xl shadow-lg">
+                            {/* Profile Header */}
+                            <div className="flex flex-col flex-1 justify-between items-center p-4 w-full rounded-xl md:flex-row bg-gray-100 border border-gray-200">
+                                <img
+                                    src={data?.avatar || avatar}
+                                    className="object-cover w-28 h-28 bg-white rounded-full cursor-pointer md:w-40 md:h-40 shadow-md transition-shadow hover:shadow-xl"
+                                    alt="User Avatar"
+                                    // Click action sets the image element directly into the action state for the modal
+                                    onClick={() =>
+                                        setAction(
+                                            <img
+                                                src={data?.avatar || avatar}
+                                                className="object-cover w-full max-h-[80vh] rounded-md"
+                                                alt="Full Avatar"
+                                            />
+                                        )
+                                    }
+                                />
+                                <div className="flex flex-col flex-1 items-center w-full mt-4 md:mt-0 md:items-start md:p-4">
+                                    <h1 className="text-2xl font-bold text-gray-800">u/{data?.username}</h1>
+                                    <p className="my-2 w-11/12 text-sm text-center text-gray-600 md:my-2 md:text-base md:text-left italic">
+                                        {data?.bio || "No bio provided."}
+                                    </p>
+                                    <div className="flex justify-between items-center w-full px-4 mt-2 md:w-full md:px-0">
+                                        <p className="text-sm text-gray-700 font-medium">Karma: {data?.karma.user_karma}</p>
+                                        <p className="text-xs text-gray-500">
+                                            Cake Day: {new Date(data?.registrationDate || Date.now()).toLocaleDateString()}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Karma Details */}
+                            <div className="flex flex-col mt-4 p-2 text-sm text-gray-700 bg-gray-50 rounded-lg border">
+                                <div className="flex justify-between space-x-4 p-1 border-b border-gray-200">
+                                    <p className="font-semibold">Total Posts:</p>
+                                    <p>{data?.karma.posts_count}</p>
+                                </div>
+                                <div className="flex justify-between space-x-4 p-1 border-b border-gray-200">
+                                    <p className="font-semibold">Posts Karma:</p>
+                                    <p>{data?.karma.posts_karma}</p>
+                                </div>
+                                <div className="flex justify-between space-x-4 p-1 border-b border-gray-200">
+                                    <p className="font-semibold">Total Comments:</p>
+                                    <p>{data?.karma.comments_count}</p>
+                                </div>
+                                <div className="flex justify-between space-x-4 p-1">
+                                    <p className="font-semibold">Comments Karma:</p>
+                                    <p>{data?.karma.comments_karma}</p>
+                                </div>
+                            </div>
+
+                            {/* Action Dropdown */}
+                            <select
+                                name="options"
+                                id="options"
+                                className="p-3 mt-4 bg-white rounded-lg border-2 border-gray-300 text-gray-700 focus:border-theme-orange transition-colors cursor-pointer"
+                                // The value needs to be cast to ActionKey for the select element
+                                value={typeof action === 'string' ? action : false}
+                                onChange={(e) => setAction(e.target.value as ActionKey)}>
+                                <option value={false}>Choose an action</option>
+                                {/* Only show edit/delete if viewing own profile */}
+                                {user.username === data?.username && (
+                                    <React.Fragment>
+                                        <option value="edit">Update Profile</option>
+                                        <option value="delete">Delete Account</option>
+                                    </React.Fragment>
+                                )}
+                                {/* Always show message option */}
+                                {user.username !== data?.username && (
+                                    <option value="message">Message {data?.username}</option>
+                                )}
+                            </select>
+                        </div>
+                    </div>
+                )}
+                
+                {/* User's Posts */}
+                <InfinitePostsLayout
+                    apiQueryKey={data?.username}
+                    linkUrl={`posts/user/${data?.username}`}
+                    enabled={data?.username !== undefined}
+                />
+
+                {/* Main Action Modal (for image view, chat, or edit) */}
+                <AnimatePresence>
+                    {isModalOpen && (
+                        <Modal showModal={action} setShowModal={setAction}>
+                            {action as React.ReactNode}
+                        </Modal>
+                    )}
+                </AnimatePresence>
+
+                {/* Delete Confirmation Modal (Custom replacement for window.confirm) */}
+                <AnimatePresence>
+                    {showDeleteConfirm && (
+                        <Modal showModal={showDeleteConfirm} setShowModal={setShowDeleteConfirm}>
+                            <div className="p-4 space-y-4">
+                                <h2 className="text-xl font-bold text-red-600">Confirm Account Deletion</h2>
+                                <p className="text-gray-700">Are you absolutely sure you want to permanently delete your account?</p>
+                                <p className="text-sm text-gray-500 font-medium">This action cannot be undone.</p>
+                                <div className="flex justify-end space-x-3">
+                                    <button
+                                        onClick={() => setShowDeleteConfirm(false)}
+                                        className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors">
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleAccountDelete}
+                                        className="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors">
+                                        Confirm Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </Modal>
+                    )}
+                </AnimatePresence>
+
+            </div>
+        </div>
+    );
+}
+
+export default Profile;
