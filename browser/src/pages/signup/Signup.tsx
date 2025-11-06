@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AxiosError } from 'axios'; // We assume Axios is installed and its types are available
+import Loader from "../../components/Loader.tsx";
+import { Link, useNavigate } from "react-router-dom";
+import AuthConsumer from "../../components/AuthContext.tsx";
+import AppLogo from "../../components/AppLogo.tsx";
 
-// In a real project, these would be separate imported modules.
-
-// 1. Mock Types for useMutation
+// Mock Types for useMutation
 // Define the expected successful data structure from the API (Same as login)
 interface AuthResponseData {
     token: string;
