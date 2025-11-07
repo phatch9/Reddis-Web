@@ -5,7 +5,7 @@ import { useState, FormEvent, ChangeEvent } from "react";
 // import avatar from "../assets/avatar.png";
 import useAuth from "./authContext"; // Using the previously defined useAuth hook
 import Loader from "./Loader";
-import { ThreadSearch } from "./Navbar";
+import { ReadSearch } from "./Navbar";
 import Svg from "./Svg"; // Assuming Svg component interface/type is correct
 
 // Interface Definitions
@@ -18,12 +18,12 @@ interface PostInfo {
     [key: string]: any;
 }
 
-interface ThreadInfo {
-    thread_id: number;
-    thread_name: string;
+interface ReadInfo {
+    read_id: number;
+    read_name: string;
 }
 
-interface ThreadState {
+interface ReadState {
     id: number;
     name: string;
 }
@@ -32,16 +32,16 @@ interface NewPostProps {
     setShowModal: (show: boolean) => void;
     isEdit?: boolean;
     postInfo?: Partial<PostInfo>;
-    threadInfo?: Partial<ThreadInfo>;
+    readInfo?: Partial<readInfo>;
 }
 
-// --- 2. Component Implementation ---
+// Component Implementation
 
-export default function NewPost({ 
+export default function NewPost({
     setShowModal,
     isEdit = false,
     postInfo = {},
-    threadInfo = {}
+    readInfo = {}
 }: NewPostProps) {
     const queryClient = useQueryClient();
     
@@ -54,10 +54,10 @@ export default function NewPost({
     const [imageUrl, setImageUrl] = useState<string>(postInfo?.content_url || ""); // For external URLs
     const [errorMessage, setErrorMessage] = useState<string | null>(null); // State for displaying errors
 
-    // Initialize thread state, handling both creation (false) and editing (object) scenarios
-    const [thread, setThread] = useState<ThreadState | false>(
-        isEdit && threadInfo.thread_id && threadInfo.thread_name
-            ? { id: threadInfo.thread_id, name: threadInfo.thread_name }
+    // Initialize read state, handling both creation (false) and editing (object) scenarios
+    const [read, setread] = useState<readState | false>(
+        isEdit && readInfo.read_id && readInfo.read_name
+            ? { id: readInfo.read_id, name: readInfo.read_name }
             : false
     );
     
@@ -90,8 +90,8 @@ export default function NewPost({
         mutationFn: async (e: FormEvent<HTMLFormElement>) => {
             e.preventDefault();
 
-            if (!title || !thread) {
-                setErrorMessage("Title and Thread selection are mandatory.");
+            if (!title || !read) {
+                setErrorMessage("Title and read selection are mandatory.");
                 return;
             }
             setErrorMessage(null); // Clear previous errors on new attempt
@@ -106,8 +106,8 @@ export default function NewPost({
                 formData.append("media", media, media.name);
             }
             
-            // Append thread ID (converted to string for FormData)
-            formData.append("subthread_id", String(thread.id));
+            // Append read ID (converted to string for FormData)
+            formData.append("subread_id", String(read.id));
 
             try {
                 if (!isEdit) {
@@ -157,14 +157,14 @@ export default function NewPost({
                 <div className="flex items-center mr-2 space-x-2 md:space-x-3">
                     <p className="hidden md:block">{isEdit ? "Editing" : "Posting"} on</p>
                     <p className="md:hidden">On</p>
-                    {thread ? (
+                    {read ? (
                         <div className="flex items-center p-1 space-x-3">
-                            <p className="tracking-wide medium text- md:text-base text-theme-orange">{thread.name}</p>
-                            <Svg type="delete" className="w-7 h-7 text-theme-orange cursor-pointer" onClick={() => setThread(false)} />
+                            <p className="tracking-wide medium text- md:text-base text-theme-orange">{read.name}</p>
+                            <Svg type="delete" className="w-7 h-7 text-theme-orange cursor-pointer" onClick={() => setread(false)} />
                         </div>
                     ) : (
-                        // Assuming ThreadSearch props are compatible
-                        <ThreadSearch callBackFunc={setThread} forPost={true} /> 
+                        // Assuming readSearch props are compatible
+                        <readSearch callBackFunc={setread} forPost={true} /> 
                     )}
                 </div>
             </div>
