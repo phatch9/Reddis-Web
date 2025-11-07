@@ -6,7 +6,7 @@ import { FC } from "react";
 // Type Definitions
 
 /** Defines the structure of a single thread item */
-interface Reddis {
+interface Reddot {
     id: string;
     name: string;
     logo?: string; // logo will be optional
@@ -14,15 +14,15 @@ interface Reddis {
 }
 
 /** Defines the structure of the data returned by the API */
-interface ReddisData {
-    subscribed: Reddis[];
-    all: Reddis[];
-    popular: Reddis[];
+interface ReddotData {
+    subscribed: Reddot[];
+    all: Reddot[];
+    popular: Reddot[];
 }
 
 /** Props for the SideBarComponent */
 interface SideBarComponentProps {
-    threadList?: Reddis[];
+    threadList?: Reddot[];
 }
 
 // SideBarComponent Implementation
@@ -34,7 +34,7 @@ interface SideBarComponentProps {
 const SideBarComponent: FC<SideBarComponentProps> = ({ threadList }) => {
     return (
         <div className="flex flex-col space-y-4 w-48 list-none">
-            {/* threadList is now an array of Reddis objects */}
+            {/* threadList is now an array of Reddot objects */}
             {threadList?.slice(0, 10).map((thread) => (
                 <Link
                     to={`/${thread.name}`}
@@ -71,13 +71,13 @@ const SideBarComponent: FC<SideBarComponentProps> = ({ threadList }) => {
  * The main sidebar component displaying subscribed, top, and popular threads.
  * Uses useQuery for data fetching.
  */
-export function ReddisSidebar() {
+export function ReddotSidebar() {
     // Use the RedditData interface for the useQuery response
-    const { data, isLoading, isError } = useQuery<ReddisData>({
+    const { data, isLoading, isError } = useQuery<ReddotData>({
     queryKey: ["threads/all"],
-    queryFn: async (): Promise<ReddisData> => {
+    queryFn: async (): Promise<ReddotData> => {
         await new Promise(resolve => setTimeout(resolve, 500));
-        const res = await axios.get<ReddisData>("/api/threads");
+        const res = await axios.get<ReddotData>("/api/threads");
         return res.data;
     },
     retry: 2,
@@ -141,4 +141,4 @@ export function ReddisSidebar() {
     );
 }
 
-export default ReddisSidebar;
+export default ReddotSidebar;
