@@ -5,7 +5,7 @@ import axios from "axios";
 
 // Assuming these paths/components are available and have correct types
 
-import { NewThread } from "./NewThread";
+import { Newread } from "./Newread";
 
 // Assuming Svg is a component that accepts standard HTML props and a 'type' prop
 interface SvgProps extends React.SVGProps<SVGSVGElement> {
@@ -43,7 +43,7 @@ const useAuth = (): AuthContextType => {
     return {} as AuthContextType; 
 }
 
-interface ThreadSearchResult {
+interface readSearchResult {
     id: string;
     name: string;
     logo?: string;
@@ -57,11 +57,11 @@ interface AppLogoProps {
     children?: ReactNode;
 }
 
-// ThreadSearch callback can return a thread name string or a structured object
-type ThreadSearchCallbackValue = string | { id: string, name: string };
+// readSearch callback can return a read name string or a structured object
+type readSearchCallbackValue = string | { id: string, name: string };
 
-interface ThreadSearchProps {
-    callBackFunc: (value: ThreadSearchCallbackValue) => void;
+interface readSearchProps {
+    callBackFunc: (value: readSearchCallbackValue) => void;
     forPost?: boolean;
 }
 
@@ -71,12 +71,12 @@ export const AppLogo: FC<AppLogoProps> = ({ forBanner = false, children }) => {
     if (forBanner) {
         return (
             <div className="hidden relative flex-col justify-center items-center space-y-5 rounded-md cursor-pointer md:flex group">
-                <img src={threads} alt="threadit-logo" className="object-cover" />
+                <img src={reads} alt="readit-logo" className="object-cover" />
                 <span
                     className="hidden md:block absolute w-4 h-4
                              bg-theme-orange rounded-full bottom-[5.9rem] z-20 right-[8rem] group-hover:animate-bounce"></span>
                 <span className="hidden md:block absolute w-4 h-4 bg-theme-cultured rounded-full bottom-[5.9rem] z-10 right-[8rem]"></span>
-                <h1 className="font-mono text-6xl font-bold tracking-tight">Threaddit</h1>
+                <h1 className="font-mono text-6xl font-bold tracking-tight">readdit</h1>
                 <p className="text-lg font-semibold">The Internet Home Place, where many communities reside</p>
                 {children}
             </div>
@@ -84,31 +84,31 @@ export const AppLogo: FC<AppLogoProps> = ({ forBanner = false, children }) => {
     }
     return (
         <Link to="/" className="flex relative items-center space-x-3 cursor-pointer group">
-            <img src={threads} className="object-cover w-10 h-10" alt="threadit-logo" />
+            <img src={reads} className="object-cover w-10 h-10" alt="readit-logo" />
             <span
                 className="hidden md:block absolute w-2 h-2 bg-theme-orange rounded-full
-                             right-[1.4rem] top-[0.2rem] z-20 group-hover:animate-bounce"></span>
+                            right-[1.4rem] top-[0.2rem] z-20 group-hover:animate-bounce"></span>
             <span className="hidden md:block absolute w-2 h-2 bg-white rounded-full right-[1.4rem] top-[0.2rem] z-10"></span>
-            <h1 className="hidden font-mono text-3xl font-bold tracking-tight md:block">Threaddit</h1>
+            <h1 className="hidden font-mono text-3xl font-bold tracking-tight md:block">readdit</h1>
             {children}
         </Link>
     );
 }
 
-// --- ThreadSearch Component ---
+// ReadSearch Component
 
-export const ThreadSearch: FC<ThreadSearchProps> = ({ callBackFunc, forPost = false }) => {
+export const readSearch: FC<readSearchProps> = ({ callBackFunc, forPost = false }) => {
     const [showModal, setShowModal] = useState<boolean>(false);
     const searchRef = useRef<HTMLDivElement>(null);
     const [search, setSearch] = useState<string>("");
 
-    const queryData = useQuery<ThreadSearchResult[]>({
-        queryKey: ["threads/search", search],
+    const queryData = useQuery<readSearchResult[]>({
+        queryKey: ["reads/search", search],
         queryFn: async ({ signal }) => {
             // Manual Promise for simulated delay
             await new Promise(resolve => setTimeout(resolve, 500));
             
-            const response = await axios.get<ThreadSearchResult[]>(`/api/threads/search`, {
+            const response = await axios.get<readSearchResult[]>(`/api/reads/search`, {
                 params: { name: search },
                 signal,
             });
@@ -121,15 +121,15 @@ export const ThreadSearch: FC<ThreadSearchProps> = ({ callBackFunc, forPost = fa
         setSearch("");
     });
 
-    const threadNames = queryData.data ? queryData.data.map((thread) => thread.name) : [];
+    const readNames = queryData.data ? queryData.data.map((read) => read.name) : [];
     
-    // Type the subthread argument as Reddis, consistent with the expected data structure
-    const handleThreadClick = (subthread: ThreadSearchResult) => {
-        callBackFunc(forPost ? { id: subthread.id, name: subthread.name } : subthread.name);
+    // Type the subread argument, consistent with the expected data structure
+    const handlereadClick = (subread: readSearchResult) => {
+        callBackFunc(forPost ? { id: subread.id, name: subread.name } : subread.name);
         setSearch("");
     };
 
-    const handleCreateThreadClick = () => {
+    const handleCreatereadClick = () => {
         setShowModal(true);
         setSearch("");
     };
@@ -150,31 +150,31 @@ export const ThreadSearch: FC<ThreadSearchProps> = ({ callBackFunc, forPost = fa
             />
             {queryData.data && search && (
                 <ul className="flex absolute right-0 top-full z-50 flex-col p-5 mt-3 space-y-5 w-full min-w-max list-none bg-white rounded-md border shadow-xl border-y-theme-gray-blue">
-                    {queryData.data.slice(0, 5).map((subthread) => (
+                    {queryData.data.slice(0, 5).map((subread) => (
                         <li
-                            className={`flex space-x-5 cursor-pointer ${!subthread.logo && "pl-[3.75rem]"} hover:bg-gray-50 p-2 rounded-md transition-colors`}
-                            key={subthread.name}
-                            onClick={() => handleThreadClick(subthread)}>
-                            {subthread.logo && (
+                            className={`flex space-x-5 cursor-pointer ${!subread.logo && "pl-[3.75rem]"} hover:bg-gray-50 p-2 rounded-md transition-colors`}
+                            key={subread.name}
+                            onClick={() => handlereadClick(subread)}>
+                            {subread.logo && (
                                 <img
-                                    src={subthread.logo}
+                                    src={subread.logo}
                                     className="object-cover w-10 h-10 rounded-full" 
-                                    alt={`${subthread.name} logo`}
+                                    alt={`${subread.name} logo`}
                                 />
                             )}
                             <div className="flex flex-col">
-                                <p className="text-sm font-semibold tracking-wide md:text-base">{subthread.name}</p>
-                                <span className="text-xs font-light md:text-sm">{subthread.subscriberCount} Members</span>
+                                <p className="text-sm font-semibold tracking-wide md:text-base">{subread.name}</p>
+                                <span className="text-xs font-light md:text-sm">{subread.subscriberCount} Members</span>
                             </div>
                         </li>
                     ))}
-                    {!threadNames.includes(`t/${search}`) && !forPost && (
+                    {!readNames.includes(`t/${search}`) && !forPost && (
                         <>
                             <span className="w-full border border-theme-orange"></span>
                             <div
                                 className="flex justify-center items-center m-0 font-semibold cursor-pointer group hover:text-theme-orange transition-colors"
-                                onClick={handleCreateThreadClick}>
-                                <p className="text-sm md:text-base">Create subthread &quot;{search}&quot;</p>
+                                onClick={handleCreatereadClick}>
+                                <p className="text-sm md:text-base">Create subread &quot;{search}&quot;</p>
                                 <Svg type="arrow-right" className="w-6 h-6 duration-500 group-hover:translate-x-1" />
                             </div>
                         </>
@@ -183,7 +183,7 @@ export const ThreadSearch: FC<ThreadSearchProps> = ({ callBackFunc, forPost = fa
             )}
             {showModal && (
                 <Modal setShowModal={setShowModal} showModal={showModal}>
-                    <NewThread subThreadName={search} setShowModal={setShowModal} />
+                    <Newread subreadName={search} setShowModal={setShowModal} />
                 </Modal>
             )}
         </div>
@@ -249,7 +249,7 @@ export function Navbar() {
                     </NavLink>
                 </div>
 
-                <ThreadSearch callBackFunc={(threadUrl) => navigate(threadUrl as string)} />
+                <ReadSearch callBackFunc={(readUrl) => navigate(readUrl as string)} />
             </div>
 
             <div className="flex items-center md:space-x-6">
