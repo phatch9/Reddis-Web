@@ -1,25 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
-import { FC, useRef, useState, useEffect, ReactNode } from "react";
+import { FC, useRef, useState, ReactNode } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import useAuth from "./AuthContext";
+import Svg from "./Svg";
+import useClickOutside from "../hooks/clickOutside";
 
-// Assuming these paths/components are available and have correct types
+// Fallback assets. Will replace with real assets later
+const reads = "https://placehold.co/80x80/f0f0f0/333333?text=R";
+const avatar = "https://placehold.co/150x150/f0f0f0/333333?text=Avatar";
 
-import { Newread } from "./Newread";
-
-// Assuming Svg is a component that accepts standard HTML props and a 'type' prop
-interface SvgProps extends React.SVGProps<SVGSVGElement> {
-    type: string;
-}
-// Placeholder for Svg component
-const Svg: FC<SvgProps> = (props) => (
-    <svg {...props}>
-        {/* Placeholder SVG content based on type */}
-    </svg>
-);
-
-
-// --- Auth and Data Types ---
+// Auth and data types
 
 interface User {
     username: string;
@@ -29,20 +20,6 @@ interface User {
     };
 }
 
-// Assuming AuthConsumer is aliased to useAuth and returns this shape
-interface AuthContextType {
-    isAuthenticated: boolean;
-    user: User;
-    logout: () => void;
-}
-
-// Placeholder hook for AuthContext
-const useAuth = (): AuthContextType => {
-    // In a real application, this would be the actual context consumer hook
-    // Placeholder to satisfy typing (replace with actual hook import)
-    return {} as AuthContextType; 
-}
-
 interface readSearchResult {
     id: string;
     name: string;
@@ -50,7 +27,7 @@ interface readSearchResult {
     subscriberCount: number;
 }
 
-// --- Component Types ---
+// --Component Types--
 
 interface AppLogoProps {
     forBanner?: boolean;
@@ -58,14 +35,14 @@ interface AppLogoProps {
 }
 
 // readSearch callback can return a read name string or a structured object
-type readSearchCallbackValue = string | { id: string, name: string };
+type ReadSearchCallbackValue = string | { id: string, name: string };
 
-interface readSearchProps {
-    callBackFunc: (value: readSearchCallbackValue) => void;
+interface ReadSearchProps {
+    callBackFunc: (value: ReadSearchCallbackValue) => void;
     forPost?: boolean;
 }
 
-// --- AppLogo Component ---
+// AppLogo
 
 export const AppLogo: FC<AppLogoProps> = ({ forBanner = false, children }) => {
     if (forBanner) {
@@ -74,7 +51,7 @@ export const AppLogo: FC<AppLogoProps> = ({ forBanner = false, children }) => {
                 <img src={reads} alt="readit-logo" className="object-cover" />
                 <span
                     className="hidden md:block absolute w-4 h-4
-                             bg-theme-orange rounded-full bottom-[5.9rem] z-20 right-[8rem] group-hover:animate-bounce"></span>
+                                bg-theme-orange rounded-full bottom-[5.9rem] z-20 right-[8rem] group-hover:animate-bounce"></span>
                 <span className="hidden md:block absolute w-4 h-4 bg-theme-cultured rounded-full bottom-[5.9rem] z-10 right-[8rem]"></span>
                 <h1 className="font-mono text-6xl font-bold tracking-tight">readdit</h1>
                 <p className="text-lg font-semibold">The Internet Home Place, where many communities reside</p>
@@ -97,8 +74,7 @@ export const AppLogo: FC<AppLogoProps> = ({ forBanner = false, children }) => {
 
 // ReadSearch Component
 
-export const readSearch: FC<readSearchProps> = ({ callBackFunc, forPost = false }) => {
-    const [showModal, setShowModal] = useState<boolean>(false);
+export const ReadSearch: FC<ReadSearchProps> = ({ callBackFunc, forPost = false }) => {
     const searchRef = useRef<HTMLDivElement>(null);
     const [search, setSearch] = useState<string>("");
 
@@ -110,7 +86,6 @@ export const readSearch: FC<readSearchProps> = ({ callBackFunc, forPost = false 
             
             const response = await axios.get<readSearchResult[]>(`/api/reads/search`, {
                 params: { name: search },
-                signal,
             });
             return response.data;
         },
@@ -130,7 +105,9 @@ export const readSearch: FC<readSearchProps> = ({ callBackFunc, forPost = false 
     };
 
     const handleCreatereadClick = () => {
-        setShowModal(true);
+        // Navigate to a dedicated create-read page (route should be implemented in app)
+        // Fallback behavior: clear search and send user to a create page with query param
+        window.location.href = `/create-read?name=${encodeURIComponent(search)}`;
         setSearch("");
     };
 
@@ -181,16 +158,12 @@ export const readSearch: FC<readSearchProps> = ({ callBackFunc, forPost = false 
                     )}
                 </ul>
             )}
-            {showModal && (
-                <Modal setShowModal={setShowModal} showModal={showModal}>
-                    <Newread subreadName={search} setShowModal={setShowModal} />
-                </Modal>
-            )}
+            {/* Note: create-read flow navigates to a dedicated page instead of opening an inline modal */}
         </div>
     );
 }
 
-// --- Navbar Component ---
+// Navbar
 
 export function Navbar() {
     // Use typed hook (assuming AuthConsumer is aliased to useAuth)
@@ -205,7 +178,7 @@ export function Navbar() {
         } else {
             logout();
             // Ensure navigation after logout, typically to a public page
-            navigate("/all"); 
+            navigate("/all");
         }
     };
 
@@ -228,7 +201,6 @@ export function Navbar() {
                         <h2 className="font-semibold">Home</h2>
                     </NavLink>
                     
-                    {/* Popular Link */}
                     <NavLink
                         to="/popular"
                         className={({ isActive }) =>
@@ -249,7 +221,7 @@ export function Navbar() {
                     </NavLink>
                 </div>
 
-                <ReadSearch callBackFunc={(readUrl) => navigate(readUrl as string)} />
+                <ReadSearch callBackFunc={(readUrl: ReadSearchCallbackValue) => navigate(readUrl as string)} />
             </div>
 
             <div className="flex items-center md:space-x-6">
@@ -269,9 +241,9 @@ export function Navbar() {
                         <Link
                             to={`/u/${user.username}`}
                             className="hidden md:flex items-center space-x-2 bg-theme-cultured rounded-3xl pr-3 py-0.5 group hover:bg-gray-200 transition-colors">
-                            <img 
-                                loading="lazy" 
-                                width={40} 
+                            <img
+                                loading="lazy"
+                                width={40}
                                 height={40}
                                 src={user.avatar || avatar}
                                 className="object-cover w-10 h-10 rounded-full duration-500 cursor-pointer group-hover:scale-105"
