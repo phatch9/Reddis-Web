@@ -3,10 +3,13 @@ import axios from "axios";
 import Markdown from "markdown-to-jsx";
 import { useState, FormEvent, ChangeEvent } from "react";
 // import avatar from "../assets/avatar.png";
-import useAuth from "./authContext"; // Using the previously defined useAuth hook
+import useAuth from "./AuthContext"; // Using the previously defined useAuth hook
 import Loader from "./Loader";
 import { ReadSearch } from "./Navbar";
 import Svg from "./Svg"; // Assuming Svg component interface/type is correct
+
+// Fallback avatar image (page-local files use similar placeholder). Replace with app asset if available.
+const avatar = "https://placehold.co/150x150/f0f0f0/333333?text=Avatar";
 
 // Interface Definitions
 
@@ -32,7 +35,7 @@ interface NewPostProps {
     setShowModal: (show: boolean) => void;
     isEdit?: boolean;
     postInfo?: Partial<PostInfo>;
-    readInfo?: Partial<readInfo>;
+    readInfo?: Partial<ReadInfo>;
 }
 
 // Component Implementation
@@ -55,7 +58,7 @@ export default function NewPost({
     const [errorMessage, setErrorMessage] = useState<string | null>(null); // State for displaying errors
 
     // Initialize read state, handling both creation (false) and editing (object) scenarios
-    const [read, setread] = useState<readState | false>(
+    const [read, setread] = useState<ReadState | false>(
         isEdit && readInfo.read_id && readInfo.read_name
             ? { id: readInfo.read_id, name: readInfo.read_name }
             : false
@@ -163,8 +166,20 @@ export default function NewPost({
                             <Svg type="delete" className="w-7 h-7 text-theme-orange cursor-pointer" onClick={() => setread(false)} />
                         </div>
                     ) : (
-                        // Assuming readSearch props are compatible
-                        <readSearch callBackFunc={setread} forPost={true} /> 
+                        {/* Use ReadSearch component exported from Navbar */}
+                        <ReadSearch
+                            callBackFunc={(value) => {
+                                // Handle both string and object responses
+                                if (typeof value === 'string') {
+                                    // Parse expected format: "t/subredditname"
+                                    const name = value.replace(/^t\//, '');
+                                    setread({ id: -1, name }); // Temporary ID until API call
+                                } else {
+                                    setread({ id: parseInt(value.id), name: value.name });
+                                }
+                            }}
+                            forPost={true}
+                        />
                     )}
                 </div>
             </div>
