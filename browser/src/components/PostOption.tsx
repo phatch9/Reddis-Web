@@ -1,27 +1,29 @@
 import React, { useRef, useState, useCallback, useMemo, useEffect } from 'react';
+import { useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import { useLocation, useNavigate } from "react-router-dom";
 
-// --- TYPE DEFINITIONS ---
-// Minimal interfaces based on usage in PostOption
+// Type definitions
 interface PostInfo {
     id: string; // Used in handleDelete and handleSaved
-    title?: string; // Added a title field for delete confirmation message
-    [key: string]: any; // Allows for other properties needed by NewPost
+    title?: string;
+    [key: string]: any;
 }
 
 interface ThreadInfo {
-    thread_id: string; // Used in shouldBeAbleToDelete
+    thread_id: string;
     [key: string]: any;
 }
 
 interface CreatorInfo {
-    user_name: string; // Used for delete/edit permission check
+    user_name: string;
     [key: string]: any;
 }
 
 interface AuthUser {
     username: string;
     roles: ("user" | "mod" | "admin")[];
-    mod_in: string[]; // List of thread IDs where user is a moderator
+    mod_in: string[];
     [key: string]: any;
 }
 
@@ -30,7 +32,7 @@ interface PostOptionProps {
     creatorInfo: CreatorInfo;
     threadInfo: ThreadInfo;
     currentUser: {
-        saved: boolean; // Specific to this post
+        saved: boolean;
         [key: string]: any;
     };
     postInfo: PostInfo;
@@ -39,20 +41,21 @@ interface PostOptionProps {
     handleShare: () => Promise<void>;
 }
 
-// AuthContext Interface
+// AuthContext Interface (Must remain a functional stub for single-file mandate)
 interface AuthContextType {
     isAuthenticated: boolean;
     user: AuthUser;
 }
-
-// --- MOCK IMPLEMENTATIONS (For single-file environment) ---
-// Mock Hooks
-const useQueryClient = () => ({
-    invalidateQueries: (options: { queryKey: string[] }) => console.log(`Mock Invalidate Query: ${options.queryKey}`),
+const AuthConsumer = (): AuthContextType => ({
+    isAuthenticated: true,
+    user: {
+        username: "currentUser",
+        roles: ["user", "mod"],
+        mod_in: ["test-thread-id"]
+    }
 });
-// Simplify Location and Navigation mocks for use in AuthRequiredMessage
-const useLocation = () => ({ pathname: "/r/test/post/123" });
-const useNavigate = () => (target: string | number) => console.log(`Mock Navigate to: ${target}`);
+
+// Custom hook definition (Must remain defined for single-file mandate)
 const useClickOutside = (ref: React.RefObject<HTMLElement>, handler: () => void) => {
     useEffect(() => {
         const listener = (event: MouseEvent | TouchEvent) => {
@@ -70,27 +73,7 @@ const useClickOutside = (ref: React.RefObject<HTMLElement>, handler: () => void)
     }, [ref, handler]);
 };
 
-// Mock Dependencies
-const axios = {
-    delete: (url: string) => {
-        console.log(`Mock axios DELETE: ${url}`);
-        return Promise.resolve();
-    },
-    put: (url: string) => {
-        console.log(`Mock axios PUT: ${url}`);
-        return Promise.resolve();
-    },
-};
-
-const AuthConsumer = (): AuthContextType => ({
-    isAuthenticated: true,
-    user: {
-        username: "currentUser",
-        roles: ["user", "mod"],
-        mod_in: ["test-thread-id"]
-    }
-});
-
+// Utility component definition (Must remain defined for single-file mandate)
 const Svg: React.FC<{ type: 'more', className: string }> = ({ className }) => (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor">
         <circle cx="12" cy="12" r="2" />
@@ -99,11 +82,11 @@ const Svg: React.FC<{ type: 'more', className: string }> = ({ className }) => (
     </svg>
 );
 
-// Mock component definitions
+// Component definition (Must remain defined for single-file mandate)
 const NewPost: React.FC<Pick<PostOptionProps, 'postInfo' | 'threadInfo' | 'setShowModal'> & { isEdit: boolean }> = () =>
     <div className="p-4 bg-gray-100 rounded-lg">New/Edit Post Form</div>;
 
-// --- COMPLIANT UI COMPONENTS (Replacing alert/confirm) ---
+// COMPLIANT UI COMPONENTS
 
 const DeleteConfirmation: React.FC<{
     onConfirm: () => void;
@@ -151,7 +134,6 @@ const AuthRequiredMessage: React.FC<{ setShowModal: React.Dispatch<React.SetStat
         </div>
     </div>
 );
-
 
 export default function PostOption({
     creatorInfo,
@@ -237,7 +219,6 @@ export default function PostOption({
     }, [isAuthenticated, postSaved, postInfo?.id, queryClient, showLoginRequired]);
 
     const handleEdit = useCallback(() => {
-        // ADDED: Optional chaining to safely access creatorInfo
         if (!isAuthenticated || creatorInfo?.user_name !== user.username) {
             return showLoginRequired();
         }
@@ -249,7 +230,6 @@ export default function PostOption({
 
     // Memoize the delete permission check
     const shouldBeAbleToDelete = useMemo(() => {
-        // ADDED: Null check for creatorInfo
         if (!isAuthenticated || !creatorInfo) return false;
 
         const isCreator = creatorInfo.user_name === user.username;
@@ -291,7 +271,6 @@ export default function PostOption({
                         </li>
 
                         {/* Edit (only for post creator) */}
-                        {/* ADDED: Optional chaining to safely check creatorInfo?.user_name */}
                         {isAuthenticated && creatorInfo?.user_name === user.username && (
                             <li
                                 onClick={handleEdit}

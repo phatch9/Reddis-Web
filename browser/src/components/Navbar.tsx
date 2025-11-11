@@ -27,7 +27,7 @@ interface readSearchResult {
     subscriberCount: number;
 }
 
-// --Component Types--
+// Component Types
 
 interface AppLogoProps {
     forBanner?: boolean;
@@ -83,7 +83,7 @@ export const ReadSearch: FC<ReadSearchProps> = ({ callBackFunc, forPost = false 
         queryFn: async ({ signal }) => {
             // Manual Promise for simulated delay
             await new Promise(resolve => setTimeout(resolve, 500));
-            
+        
             const response = await axios.get<readSearchResult[]>(`/api/reads/search`, {
                 params: { name: search },
             });
