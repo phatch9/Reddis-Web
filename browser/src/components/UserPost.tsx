@@ -1,99 +1,46 @@
-import React, { useRef, useState, useCallback, useMemo, useEffect } from 'react';
-import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
-// EXTERNAL LIBRARY/COMPONENT
-// Third-Party Libraries Stubs
+import React, { useRef, useState, useEffect } from 'react';
 const Link = ({ to, children, className, onClick }) => <a href={to} className={className} onClick={onClick}>{children}</a>;
 const useNavigate = () => (path) => console.log("Navigate to:", path);
-const AnimatePresence = ({ children }) => <>{children}</>;
-const motion = { li: ({ children, className, variants, initial, animate, exit, transition }) => <li className={className} children={children} /> };
-const useInView = (ref, options) => true; // Mock always in view
-const ScrollRestoration = () => null;
-const PropTypes = { object: () => null, bool: () => null, number: () => null, func: () => null };
-const ReactPlayer = ({ playing, controls, url, width, height, muted, loop, style }) => (
-    <div className="bg-black text-white p-4 text-center">Mock Video Player: {url}</div>
-);
+const ReactPlayer = ({ url }) => <div className="bg-black text-white p-4 text-center">Video: {url}</div>;
 const Markdown = ({ children, className }) => <div className={className}>{children}</div>;
-const avatar = "https://placehold.co/100x100/F97316/ffffff?text=U";
-
-// Local Component Stubs
 const Svg = ({ type, className, onClick }) => <span className={`inline-block ${className} text-gray-500`} onClick={onClick}>[{type}]</span>;
-const AuthConsumer = () => ({ isAuthenticated: true, user: { username: "mockuser", mod_in: ["r/test-thread-id"], roles: ["user"] } });
-
-const AuthRequiredMessage = ({ setShowModal, navigate }) => (
-    <div className="p-6 space-y-5 text-center bg-white rounded-xl shadow-2xl min-w-[300px]">
-        <h2 className="text-xl font-bold text-orange-600">Login Required</h2>
-        <p className="text-gray-700">You must be logged in to perform this action.</p>
-        <button onClick={() => setShowModal(false)} className="px-4 py-2 text-white bg-orange-600 rounded-lg">Close</button>
-    </div>
-);
-
-const ToastMessage = ({ success, message, setShowModal }) => (
-    <div className={`p-4 rounded-lg shadow-xl ${success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-        <p className="font-medium">{message}</p>
-        <button onClick={() => setShowModal(false)} className="mt-2 text-xs underline">Dismiss</button>
-    </div>
-);
-
-const Modal = ({ setShowModal, showModal, children }) => {
-    if (!showModal) return null;
-    return (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50 p-4" onClick={() => setShowModal(false)}>
-            <div className="relative" onClick={e => e.stopPropagation()}>
-                {children}
-            </div>
-        </div>
-    );
-};
-
-const Vote = ({ intitalVote, initialCount, type }) => (
-    <div className={`flex items-center ${type === 'full' ? 'flex-col space-y-1' : 'space-x-1'}`}>
-        <Svg type="upvote" className="w-5 h-5 text-gray-400 hover:text-green-600" />
+// small Vote stub
+const Vote = ({ initialCount, type }) => (
+    <div className={`flex items-center ${type === 'compact' ? 'space-x-1' : 'flex-col'}`}>
+        <Svg type="upvote" className="w-5 h-5 text-gray-400" />
         <span className="text-sm font-bold">{initialCount || 0}</span>
-        <Svg type="downvote" className="w-5 h-5 text-gray-400 hover:text-red-600" />
+        <Svg type="downvote" className="w-5 h-5 text-gray-400" />
     </div>
 );
 
-// 3. PostMoreOptions (The component that was throwing the QueryClient error)
-// This definition includes the necessary useQueryClient hook but now it is wrapped in the provider via App.
-const PostMoreOptions = ({
-    creatorInfo,
-    threadInfo,
-    currentUser,
-    postInfo,
-    setShowModal,
-    setModalData,
-    handleShare,
-}) => {
-    // THIS useQueryClient call caused the original error. It is now fixed by the App component wrapper.
-    const queryClient = useQueryClient();
-    const { isAuthenticated, user } = AuthConsumer();
-    const [expand, setExpand] = useState(false);
-    
-    const isCreator = creatorInfo?.user_name === user.username;
-    const shouldBeAbleToDelete = isCreator || user.roles.includes("mod") && user.mod_in.includes(threadInfo?.thread_id);
+// Simple PostMoreOptions component that uses queryClient if available
+const PostMoreOptions = ({ creatorInfo, threadInfo, currentUser, postInfo, setShowModal, setModalData, handleShare }) => {
+    // In this lightweight stub we don't use a query client; the real app provides caching via QueryClientProvider.
+    const queryClient = null;
 
-    const handleSaved = () => { 
-        if (!isAuthenticated) { return setShowModal(true); } 
+    const { isAuthenticated, user } = { isAuthenticated: true, user: { username: 'mockuser', roles: ['user'], mod_in: [] } };
+    const [expand, setExpand] = useState(false);
+    const isCreator = creatorInfo?.user_name === user.username;
+    const shouldBeAbleToDelete = isCreator || (user.roles.includes("mod") && user.mod_in.includes(threadInfo?.thread_id));
+
+    const handleSaved = () => {
+        if (!isAuthenticated) { return setShowModal(true); }
         setExpand(false);
-        console.log("Saving/Unsaving post");
-        queryClient.invalidateQueries({ queryKey: ["savedPosts"] }); 
+        if (queryClient) queryClient.invalidateQueries({ queryKey: ["savedPosts"] });
     };
-    
+
     const confirmDelete = () => {
         setExpand(false);
         setShowModal(true);
-        setModalData(
-            <AuthRequiredMessage setShowModal={setShowModal} navigate={() => {}} />
-        );
+        setModalData(<div className="p-4">Confirm Delete (auth required)</div>);
     };
 
     return (
         <div className="relative flex items-center p-1 cursor-pointer select-none">
             <Svg className="w-6 h-6 text-gray-500" type="more" onClick={() => setExpand(prev => !prev)} />
-
             {expand && (
                 <ul className="absolute top-full right-0 z-20 p-2 mt-2 space-y-1 w-36 list-none bg-white rounded-lg shadow-xl border border-gray-200">
-                    <li className="p-1 text-sm text-gray-700 hover:bg-gray-100" onClick={handleSaved}>{currentUser?.saved ? "Unsave" : "Save"}</li>
+                    <li className="p-1 text-sm text-gray-700 hover:bg-gray-100" onClick={handleSaved}>{postInfo?.currentUser?.saved ? "Unsave" : "Save"}</li>
                     <li className="p-1 text-sm text-gray-700 hover:bg-gray-100" onClick={() => { handleShare(); setExpand(false); }}>Share</li>
                     {isCreator && <li className="p-1 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setExpand(false)}>Edit</li>}
                     {shouldBeAbleToDelete && <li className="p-1 text-sm text-red-600 hover:bg-red-50" onClick={confirmDelete}>Delete</li>}
@@ -103,18 +50,132 @@ const PostMoreOptions = ({
     );
 };
 
-// Utility for handleShare (replaces navigator.clipboard)
+// Utility copy (fallback)
 const copyToClipboard = (text) => {
+    try {
+        if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text);
+            return true;
+        }
+    } catch (e) {
+        // fallback
+    }
     const textarea = document.createElement('textarea');
     textarea.value = text;
     document.body.appendChild(textarea);
     textarea.select();
     try {
-        const successful = document.execCommand('copy');
+        document.execCommand('copy');
         document.body.removeChild(textarea);
-        return successful;
+        return true;
     } catch (err) {
         document.body.removeChild(textarea);
         return false;
     }
 };
+
+export function Post({ post = {}, isExpanded = false, postIndex = 0, setCommentMode = () => {} }) {
+    const { isAuthenticated } = { isAuthenticated: true };
+    const vidRef = useRef(null);
+    const [modalShow, setShowModal] = useState(false);
+    const [modalData, setModalData] = useState(null);
+
+    useEffect(() => {
+        if (isExpanded) {
+            document.title = post?.post_info?.title || "Threaddit Post";
+        }
+        return () => {
+            if (isExpanded) document.title = "Threaddit";
+        };
+    }, [isExpanded, post?.post_info?.title]);
+
+    function onMediaClick(mediaType) {
+        if (!post?.post_info?.media) return;
+        setShowModal(true);
+        if (mediaType === 'video') {
+            setModalData(<ReactPlayer url={post.post_info.media} />);
+        } else {
+            setModalData(<img src={post.post_info.media} alt="post media" className="rounded" />);
+        }
+    }
+
+    function onReplyClick() {
+        if (isAuthenticated) {
+            setCommentMode(prev => !prev);
+        } else {
+            setShowModal(true);
+            setModalData(<div className="p-6">Please log in to reply.</div>);
+        }
+    }
+
+    async function handleShare() {
+        const link = `${window.location.origin}/post/${post?.post_info?.id}`;
+        const ok = copyToClipboard(link);
+        setShowModal(true);
+        setModalData(<div className={`p-4 rounded ${ok ? 'bg-green-100' : 'bg-red-100'}`}>{ok ? 'Copied link' : 'Could not copy link'}</div>);
+        setTimeout(() => setShowModal(false), 2000);
+    }
+
+    const createdAt = new Date(post?.post_info?.created_at || Date.now());
+
+    return (
+        <article className="p-4 mb-4 bg-white rounded shadow">
+            <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0">
+                    <Vote initialCount={post?.post_info?.votes} type="compact" />
+                </div>
+                <div className="w-full">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-lg font-semibold">
+                            <Link to={`/post/${post?.post_info?.id}`}>{post?.post_info?.title || 'Untitled'}</Link>
+                        </h2>
+                        <div className="flex items-center space-x-2">
+                            <span className="text-xs text-gray-500">{createdAt.toLocaleString()}</span>
+                            <PostMoreOptions
+                                creatorInfo={post?.creator}
+                                threadInfo={post?.thread}
+                                currentUser={{}}
+                                postInfo={post}
+                                setShowModal={setShowModal}
+                                setModalData={setModalData}
+                                handleShare={handleShare}
+                            />
+                        </div>
+                    </div>
+
+                    {post?.post_info?.media && (
+                        <div className="mt-3">
+                            {post.post_info.media_type === 'video' ? (
+                                <div className="cursor-pointer" onClick={() => onMediaClick('video')} ref={vidRef}>
+                                    <ReactPlayer url={post.post_info.media} />
+                                </div>
+                            ) : (
+                                <img src={post.post_info.media} alt="post media" className="w-full h-auto rounded-md cursor-pointer" onClick={() => onMediaClick('image')} />
+                            )}
+                        </div>
+                    )}
+
+                    {post?.post_info?.content && (
+                        <div className="mt-3 text-sm text-gray-800">
+                            <Markdown className="prose">{post.post_info.content}</Markdown>
+                        </div>
+                    )}
+
+                    <div className="mt-3 flex items-center space-x-4">
+                        <button className="text-sm text-gray-600" onClick={onReplyClick}><Svg type="comment" className="inline mr-1" /> Reply</button>
+                        <button className="text-sm text-gray-600" onClick={handleShare}><Svg type="share" className="inline mr-1" /> Share</button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Modal area */}
+            {modalShow && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" onClick={() => setShowModal(false)}>
+                    <div className="bg-white p-4 rounded" onClick={e => e.stopPropagation()}>{modalData}</div>
+                </div>
+            )}
+        </article>
+    );
+}
+
+export default Post;
