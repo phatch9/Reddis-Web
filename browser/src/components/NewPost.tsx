@@ -74,12 +74,12 @@ export default function NewPost({
         const file = e.target.files?.[0];
         if (file) {
             // 10MB limit in bytes
-            const maxFileSize = 10 * 1024 * 1024; 
+            const maxFileSize = 10 * 1024 * 1024;
             if (file.size > maxFileSize) {
                 // Display error message instead of alert()
                 setErrorMessage(`File too large (${(file.size / 1024 / 1024).toFixed(2)}MB). Only upload files less than 10MB.`);
                 // Clear the file input and state
-                e.target.value = ''; 
+                e.target.value = '';
                 setMedia(null);
             } else {
                 setErrorMessage(null);
@@ -166,7 +166,7 @@ export default function NewPost({
                             <Svg type="delete" className="w-7 h-7 text-theme-orange cursor-pointer" onClick={() => setread(false)} />
                         </div>
                     ) : (
-                        {/* Use ReadSearch component exported from Navbar */}
+                    /* Use ReadSearch component exported from Navbar */
                         <ReadSearch
                             callBackFunc={(value) => {
                                 // Handle both string and object responses
