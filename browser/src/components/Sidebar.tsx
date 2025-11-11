@@ -4,7 +4,6 @@ import { FC } from "react";
 import { Link } from "react-router-dom";
 
 // Type Definitions
-
 /** Defines the structure of a single thread item. */
 interface Thread {
     id: string; // Assuming 'id' is available, otherwise 'name' can be the key
