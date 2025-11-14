@@ -156,3 +156,152 @@ export function InfinitePostsLayout({ linkUrl, apiQueryKey, forSaved = false, en
         };
     }, [fetchNextPage, isFetching, hasNextPage]);
 
+// Handler for Duration filter change
+    function handleDurationChange(newDuration) {
+        // Create a new mutable URLSearchParams mock object
+        const newParams = searchParams.set("duration", newDuration);
+        setSearchParams(newParams, { replace: true });
+    }
+
+    // Handler for SortBy filter change
+    function handleSortByChange(newSortBy) {
+        // Create a new mutable URLSearchParams mock object
+        const newParams = searchParams.set("sortBy", newSortBy);
+        setSearchParams(newParams, { replace: true });
+    }
+
+    // Determine if we have loaded data yet
+    const isLoadingInitial = isFetching && data?.pages.length === 0;
+
+    return (
+        <div
+            id="main-content"
+            className="flex w-full flex-col flex-1 p-2 space-y-4 rounded-lg bg-gray-50 md:bg-white md:m-3 max-w-2xl mx-auto">
+            
+            {/* Filtering Header */}
+            {!forSaved && (
+                <header className="flex justify-between items-center p-3 bg-white rounded-xl shadow-md border border-gray-100">
+                    
+                    {/* Mobile Sorting Controls (Select Boxes) */}
+                    <div className="flex space-x-4 md:hidden text-sm">
+                        <div className="flex items-center space-x-2">
+                            <span>Sort by</span>
+                            <select
+                                name="sort"
+                                id="sort-mobile"
+                                className="p-1.5 px-3 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                                onChange={(e) => handleSortByChange(e.target.value)}
+                                value={sortBy}>
+                                <option value="top">Top</option>
+                                <option value="hot">Hot</option>
+                                <option value="new">New</option>
+                            </select>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <span>Of</span>
+                            <select
+                                name="duration"
+                                id="duration-mobile"
+                                className="p-1.5 px-3 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                                onChange={(e) => handleDurationChange(e.target.value)}
+                                value={duration}>
+                                <option value="day">Day</option>
+                                <option value="week">Week</option>
+                                <option value="month">Month</option>
+                                <option value="year">Year</option>
+                                <option value="alltime">All Time</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Desktop Duration Tabs */}
+                    <ul className="hidden space-x-2 list-none md:flex">
+                        {['day', 'week', 'month', 'alltime'].map(d => (
+                            <li
+                                key={d}
+                                className={`p-2 rounded-md px-4 text-sm font-medium cursor-pointer transition-colors duration-150 ${duration === d ? "bg-blue-100 text-blue-700" : "hover:bg-gray-100 text-gray-700"
+                                }`}
+                                onClick={() => handleDurationChange(d)}>
+                                {d === 'alltime' ? 'All Time' : d.charAt(0).toUpperCase() + d.slice(1)}
+                            </li>
+                        ))}
+                    </ul>
+
+                    {/* Desktop SortBy Tabs */}
+                    <ul className="hidden mr-5 space-x-2 list-none md:flex">
+                        {['hot', 'new', 'top'].map(s => (
+                            <li
+                                key={s}
+                                className={`p-2 rounded-md px-4 text-sm font-medium cursor-pointer transition-colors duration-150 ${sortBy === s ? "bg-orange-100 text-orange-700" : "hover:bg-gray-100 text-gray-700"
+                                }`}
+                                onClick={() => handleSortByChange(s)}>
+                                {s.charAt(0).toUpperCase() + s.slice(1)}
+                            </li>
+                        ))}
+                    </ul>
+                </header>
+            )}
+
+            {/* Loading Indicator */}
+            {isLoadingInitial && <Loader forPosts={true} />}
+
+            {/* No Posts Found Message */}
+            {!isLoadingInitial && data?.pages[0]?.length === 0 ? (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
+                    <p className="p-5 bg-white rounded-xl border-2 border-dashed border-gray-300 text-center text-gray-600">
+                        No posts with this filter were found. Be the first to add one!
+                    </p>
+                </motion.div>
+            ) : (
+                // Posts List
+                <div className="flex flex-col space-y-3">
+                    {data?.pages.map((pageData, index) => (
+                        // Ensure each page has a unique key
+                        <ul className="flex flex-col space-y-3" key={index}>
+                            <AnimatePresence initial={index === 0}>
+                                {pageData?.map((post, postIndex) => (
+                                    // Combine page index and post index for a unique key across all pages
+                                    <Post post={post} key={post.post_info.id} postIndex={postIndex} />
+                                ))}
+                            </AnimatePresence>
+                        </ul>
+                    ))}
+                </div>
+            )}
+            
+            {/* Fetching Next Page Indicator */}
+            {hasNextPage && isFetching && (
+                <div className="py-4 text-center text-blue-500 font-medium">
+                    Loading more posts...
+                </div>
+            )}
+
+            {/* End of Content Indicator */}
+            {!hasNextPage && data?.pages[0]?.length > 0 && (
+                <div className="py-4 text-center text-gray-400 text-sm">
+                    — You've reached the end of the line —
+                </div>
+            )}
+        </div>
+    );
+}
+
+// --- APP WRAPPER --- Required to provide the QueryClient context.
+const queryClient = new QueryClient();
+
+export default function App() {
+    return (
+        <QueryClientProvider client={queryClient}>
+            <div className="min-h-screen bg-gray-100 p-4">
+                <h1 className="text-3xl font-extrabold text-center mb-6 text-gray-900">
+                    Infinite Posts Feed (Scroll Down!)
+                </h1>
+                <InfinitePostsLayout 
+                    linkUrl="posts" 
+                    apiQueryKey="homeFeed"
+                    enabled={true} 
+                />
+            </div>
+        </QueryClientProvider>
+    );
+}
