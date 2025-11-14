@@ -1,5 +1,5 @@
 import { focusManager, useMutation, useQuery } from "@tanstack/react-query";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { FC, useEffect, useState } from "react";
 import Svg from "./Svg";
 import Loader from "./Loader";
@@ -46,10 +46,9 @@ export const ManageMods: FC<ManageModsProps> = ({ mods, threadId }) => {
    */
   const { data, isFetching } = useQuery<UserSearchResult[], Error>({
     queryKey: ["search/user", search],
-    queryFn: async ({ signal }) => {
-      return await axios
-        .get(`/api/user/search/${search}`, { signal })
-        .then((data) => data.data);
+    queryFn: async () => {
+      const response = await axios.get<UserSearchResult[]>(`/api/user/search/${search}`);
+      return response.data;
     },
     enabled: search.length > 3, // Only search when 4+ chars are typed
   });
@@ -93,8 +92,10 @@ export const ManageMods: FC<ManageModsProps> = ({ mods, threadId }) => {
     },
     onError: (err) => {
       // Handle errors and display them to the user
-      if (axios.isAxiosError(err)) {
-        const errorData = err.response?.data as ApiErrorResponse;
+      // Check if the error has a response property (typical for axios errors)
+      const hasResponse = err && typeof err === 'object' && 'response' in err;
+      if (hasResponse) {
+        const errorData = (err as any).response?.data as ApiErrorResponse;
         const message =
           errorData?.message ||
           "An error occurred. Only admins can remove the thread creator.";
@@ -183,13 +184,13 @@ export const ManageMods: FC<ManageModsProps> = ({ mods, threadId }) => {
           ) : (
             data && (
               <ul className="overflow-auto h-full relative p-3 space-y-2 list-none rounded-md bg-theme-cultured border">
-                {data.length === 0 && search.length > 3 && (
+                {data && data.length === 0 && search.length > 3 && (
                   <li className="text-gray-500 text-center">
                     No users found.
                   </li>
                 )}
-                {data.map(
-                  (user) =>
+                {data && data.map(
+                  (user: UserSearchResult) =>
                     !modList.includes(user.username) && (
                       <li
                         key={user.username}
