@@ -4,15 +4,15 @@ import { QueryClient, QueryClientProvider, useInfiniteQuery } from "@tanstack/re
 // These mocks make the component runnable without external libraries/files.
 // Mock for 'axios'
 const axios = {
-    get: async (url) => {
+    get: async (url: string) => {
         console.log(`Mock Fetching: ${url}`);
         
         // Simulate network delay
-        await new Promise(resolve => setTimeout(500));
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         const params = new URLSearchParams(url.split('?')[1]);
-        const offset = parseInt(params.get('offset')) || 0;
-        const limit = parseInt(params.get('limit')) || 20;
+        const offset = parseInt(params.get('offset') || '0') || 0;
+        const limit = parseInt(params.get('limit') || '20') || 20;
 
         // Mock Data Generation
         const totalMockPosts = 65; 
@@ -41,11 +41,8 @@ const axios = {
 // Mock for 'react-router-dom' useSearchParams
 const useSearchParamsMock = () => {
     const [params, setParams] = useState({ sortBy: 'top', duration: 'alltime' });
-    const searchParams = useMemo(() => ({
-        get: (key) => params[key],
-    }), [params]);
     
-    const setSearchParams = useCallback((newParams, options) => {
+    const setSearchParams = useCallback((newParams: any, options: any) => {
         setParams(prev => ({ ...prev, ...Object.fromEntries(newParams.entries()) }));
         console.log("Search Params Updated:", Object.fromEntries(newParams.entries()));
     }, []);
@@ -54,8 +51,8 @@ const useSearchParamsMock = () => {
     const MockURLSearchParams = useMemo(() => {
         const urlParams = new Map(Object.entries(params));
         return {
-            get: (key) => urlParams.get(key),
-            set: (key, value) => { urlParams.set(key, value); return urlParams; },
+            get: (key: string) => urlParams.get(key),
+            set: (key: string, value: string) => { urlParams.set(key, value); return urlParams; },
             entries: () => urlParams.entries(),
         };
     }, [params]);
@@ -65,13 +62,13 @@ const useSearchParamsMock = () => {
 
 // Mock for 'framer-motion'
 const motion = {
-    div: ({ children, className, initial, animate, transition }) => <div className={className}>{children}</div>,
-    li: ({ children, className, variants, initial, animate, exit, transition }) => <li className={className}>{children}</li>,
+    div: ({ children, className, initial, animate, transition }: any) => <div className={className}>{children}</div>,
+    li: ({ children, className, variants, initial, animate, exit, transition }: any) => <li className={className}>{children}</li>,
 };
-const AnimatePresence = ({ children }) => <>{children}</>;
+const AnimatePresence = ({ children }: any) => <>{children}</>;
 
 // Mock for 'Loader'
-const Loader = ({ forPosts }) => (
+const Loader = ({ forPosts }: any) => (
     <div className="flex justify-center items-center p-8 text-lg text-gray-500">
         Loading {forPosts ? 'Posts...' : 'Data...'}
     </div>
@@ -88,7 +85,7 @@ const PropTypes = {
 };
 
 // Mock for 'Post' component (minimal implementation)
-const Post = ({ post, postIndex }) => (
+const Post = ({ post, postIndex }: any) => (
     <motion.li
         className="flex flex-col p-3 bg-white rounded-xl border-2 border-gray-200 shadow-sm transition-shadow duration-300 hover:shadow-lg"
         initial={{ opacity: 0, y: 20 }}
@@ -105,10 +102,10 @@ Post.propTypes = { post: PropTypes.any, postIndex: PropTypes.number };
 
 // INFINITE POSTS LAYOUT COMPONENT
 
-export function InfinitePostsLayout({ linkUrl, apiQueryKey, forSaved = false, enabled = true }) {
-    const [searchParams, setSearchParams] = useSearchParamsMock();
-    const sortBy = searchParams.get("sortBy") || "top";
-    const duration = searchParams.get("duration") || "alltime";
+export function InfinitePostsLayout({ linkUrl, apiQueryKey, forSaved = false, enabled = true }: any) {
+    const [searchParams, setSearchParams] = useSearchParamsMock() as any;
+    const sortBy = (searchParams as any).get("sortBy") || "top";
+    const duration = (searchParams as any).get("duration") || "alltime";
 
     // Use useInfiniteQuery from TanStack Query
     const { data, isFetching, hasNextPage, fetchNextPage, refetch } = useInfiniteQuery({
@@ -157,17 +154,17 @@ export function InfinitePostsLayout({ linkUrl, apiQueryKey, forSaved = false, en
     }, [fetchNextPage, isFetching, hasNextPage]);
 
 // Handler for Duration filter change
-    function handleDurationChange(newDuration) {
+    function handleDurationChange(newDuration: any) {
         // Create a new mutable URLSearchParams mock object
-        const newParams = searchParams.set("duration", newDuration);
-        setSearchParams(newParams, { replace: true });
+        const newParams = { entries: () => [["duration", newDuration]] };
+        (setSearchParams as any)(newParams, { replace: true });
     }
 
     // Handler for SortBy filter change
-    function handleSortByChange(newSortBy) {
+    function handleSortByChange(newSortBy: any) {
         // Create a new mutable URLSearchParams mock object
-        const newParams = searchParams.set("sortBy", newSortBy);
-        setSearchParams(newParams, { replace: true });
+        const newParams = { entries: () => [["sortBy", newSortBy]] };
+        (setSearchParams as any)(newParams, { replace: true });
     }
 
     // Determine if we have loaded data yet
@@ -277,7 +274,7 @@ export function InfinitePostsLayout({ linkUrl, apiQueryKey, forSaved = false, en
             )}
 
             {/* End of Content Indicator */}
-            {!hasNextPage && data?.pages[0]?.length > 0 && (
+            {!hasNextPage && (data?.pages?.[0]?.length ?? 0) > 0 && (
                 <div className="py-4 text-center text-gray-400 text-sm">
                     — You've reached the end of the line —
                 </div>
