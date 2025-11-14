@@ -164,19 +164,6 @@ export default function PostOption({
         setExpand(false);
     }, [setShowModal, setModalData, navigate]);
 
-    // Delete handler confirmation setup
-    const confirmDelete = useCallback(() => {
-        setShowModal(true);
-        setModalData(
-            <DeleteConfirmation
-                onCancel={() => setShowModal(false)}
-                onConfirm={handleConfirmedDelete}
-                postTitle={postInfo.title}
-            />
-        );
-        setExpand(false);
-    }, [setShowModal, setModalData, postInfo]);
-
     // Actual delete logic
     const handleConfirmedDelete = useCallback(async () => {
         setShowModal(false); // Close modal before API call
@@ -195,6 +182,18 @@ export default function PostOption({
         }
     }, [postInfo, location.pathname, navigate, queryClient, setShowModal]);
 
+    // Delete handler confirmation setup
+    const confirmDelete = useCallback(() => {
+        setShowModal(true);
+        setModalData(
+            <DeleteConfirmation
+                onCancel={() => setShowModal(false)}
+                onConfirm={handleConfirmedDelete}
+                postTitle={postInfo.title}
+            />
+        );
+        setExpand(false);
+    }, [setShowModal, setModalData, postInfo, handleConfirmedDelete]);
 
     const handleSaved = useCallback(async () => {
         if (!isAuthenticated) {
