@@ -103,3 +103,56 @@ const Post = ({ post, postIndex }) => (
 // FIXED: Changed invalid nested structure (which caused undefined errors) to use the local mock PropTypes correctly.
 Post.propTypes = { post: PropTypes.any, postIndex: PropTypes.number };
 
+// INFINITE POSTS LAYOUT COMPONENT
+
+export function InfinitePostsLayout({ linkUrl, apiQueryKey, forSaved = false, enabled = true }) {
+    const [searchParams, setSearchParams] = useSearchParamsMock();
+    const sortBy = searchParams.get("sortBy") || "top";
+    const duration = searchParams.get("duration") || "alltime";
+
+    // Use useInfiniteQuery from TanStack Query
+    const { data, isFetching, hasNextPage, fetchNextPage, refetch } = useInfiniteQuery({
+        queryKey: ["posts", apiQueryKey, sortBy, duration],
+        queryFn: async ({ pageParam = 0 }) => {
+            // Mock API call using stubbed axios
+            return await axios
+                .get(`/api/${linkUrl}?limit=${20}&offset=${pageParam * 20}&sortby=${sortBy}&duration=${duration}`)
+                .then((data) => data.data);
+        },
+        enabled: enabled,
+        // Calculate the next page parameter
+        getNextPageParam: (lastPage, pages) => {
+            if (lastPage.length < 20) return undefined;
+            return pages.length;
+        },
+        // Refetch whenever sortBy or duration changes
+        initialPageParam: 0,
+    });
+    
+    // Trigger refetch when filters change to start over at page 0
+    useEffect(() => {
+        refetch();
+    }, [sortBy, duration, refetch]);
+
+    // Infinite Scrolling Logic
+    useEffect(() => {
+        const onScroll = () => {
+            // We use document.documentElement for general window scrolling
+            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+            
+            // Trigger fetch when user is close to the bottom (within 2 viewports)
+            if (scrollHeight - scrollTop <= clientHeight * 2 && hasNextPage && !isFetching) {
+                console.log("Fetching next page...");
+                fetchNextPage();
+            }
+        };
+        
+        // Attach event listener
+        window.addEventListener("scroll", onScroll);
+        
+        // Cleanup listener on unmount
+        return () => {
+            window.removeEventListener("scroll", onScroll);
+        };
+    }, [fetchNextPage, isFetching, hasNextPage]);
+
