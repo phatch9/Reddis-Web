@@ -59,7 +59,7 @@ export function Sidebar() {
   const { data, isLoading, isError } = useQuery<ThreadData, Error>({
     queryKey: ["threads/all"],
     queryFn: async () => {
-      const res = await axios.get<ThreadData>("/api/threads");
+      const res = await axios.get("/api/threads");
       return res.data;
     },
   });
@@ -85,7 +85,7 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex flex-col w-56">
       {/* Subscribed Threads */}
-      {data && data.subscribed && data.subscribed.length > 0 && (
+      {data?.subscribed?.length > 0 && (
         <>
           <div className="flex flex-col m-5 space-y-4">
             <div className="flex justify-between w-48 cursor-pointer">
@@ -104,7 +104,7 @@ export function Sidebar() {
           <h2 className="font-semibold uppercase">Top Threads</h2>
           <span className="pr-1">ALL</span>
         </div>
-        <SideBarComponent threadList={data && data.all ? data.all : []} />
+        <SideBarComponent threadList={data?.all} />
       </div>
       <span className="mx-5 border border-theme-silver-chalice"></span>
 
@@ -114,7 +114,7 @@ export function Sidebar() {
           <h2 className="font-semibold uppercase">Popular Threads</h2>
           <span className="pr-1">ALL</span>
         </div>
-        <SideBarComponent threadList={data && data.popular ? data.popular : []} />
+        <SideBarComponent threadList={data?.popular} />
       </div>
     </aside>
   );
