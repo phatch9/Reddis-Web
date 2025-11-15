@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-// NOTE: in this mock file we avoid importing axios types
+import { AxiosError } from 'axios';
 
 // MOCK IMPLEMENTATIONS (For single-file environment)
 // In a real project, these would be separate imported modules.
@@ -12,19 +12,21 @@ interface LoginResponseData {
   // Add any other user properties returned by the API
 }
 
-// (No explicit error body type needed in this mock file)
+// Define the expected error structure from the API response body
+interface ErrorResponseBody {
+  message: string;
+}
 
 // Mock the useMutation hook
 interface MutationResult<TData, TError> {
-    data?: TData;
-    mutate: (vars?: any) => void;
+    mutate: () => void;
     status: 'idle' | 'loading' | 'error' | 'success';
     error: TError | null;
     reset: () => void;
 }
 
-// Use a loose error type in this mock
-type LoginError = any;
+// Mock AxiosError specific to our login error structure
+type LoginError = AxiosError<ErrorResponseBody>;
 
 function useMutation<TData, TError>(options: {
     mutationFn: () => Promise<TData>;
@@ -53,7 +55,7 @@ function useMutation<TData, TError>(options: {
             setStatus('error');
             setError(err as TError); // Cast to our expected error type
         }
-    }, [options]);
+    }, [options.mutationFn, options.onSuccess]);
 
     return { mutate, status, error: error as TError | null, reset };
 }
@@ -117,17 +119,19 @@ export function Login() {
             if (email === "test@example.com" && password === "passwordxyz") {
                 const responseData: LoginResponseData = { token: "auto-jwt", userId: "user-123" };
                 return responseData; // Success data
-                } else if (email.length > 0 && password.length > 0) {
-                    // Simulate an API error response for wrong credentials
-                    const credErr: any = Object.assign(new Error("Invalid email or password."), { response: { data: { message: "Invalid email or password." } } });
-                    throw credErr;
-                }
-                // Fallback error if form is empty during a direct mutate call
-                const emptyErr: any = Object.assign(new Error("Please fill in all fields."), { response: { data: { message: "Please fill in all fields." } } });
-                throw emptyErr;
+            } else if (email.length > 0 && password.length > 0) {
+                // Simulate an API error response for wrong credentials
+                throw {
+                    response: {
+                        data: { message: "Invalid email or password." }
+                    }
+                } as LoginError;
+            }
+            // Fallback error if form is empty during a direct mutate call
+            throw { response: { data: { message: "Please fill in all fields." } } } as LoginError;
         },
         // onSuccess ensures the data received is of type LoginResponseData
-            onSuccess: (data) => { login(data); navigate("/home"); },
+        onSuccess: (data) => navigate("/home"),
     });
 
     useEffect(() => {
