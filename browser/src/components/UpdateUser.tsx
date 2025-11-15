@@ -1,12 +1,11 @@
-import AuthConsumer from "./authContext";
+import AuthConsumer from "./AuthContext";
 import { FormEvent, ChangeEvent } from "react";
-// import avatar from "";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { focusManager, useQueryClient } from "@tanstack/react-query";
 
 // Interface Definition
-/** Props for the UpdateUser component. */
+/* Props for the UpdateUser component. */
 interface UpdatePropTypes {
     setModal: (show: boolean) => void;
 }
@@ -15,8 +14,8 @@ export type User = {
     avatar?: string;
     bio?: string;
 };
-// Component Implementation
 
+// Component Implementation
 export default function UpdateUser({ setModal }: UpdatePropTypes) {
     const queryClient = useQueryClient();
     const { user } = AuthConsumer();
@@ -29,9 +28,8 @@ export default function UpdateUser({ setModal }: UpdatePropTypes) {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-    /**
-     * Handles file selection and validates size (10MB limit).
-     */
+    /** Handles file selection and validates size (10MB limit).*/
+    
     const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
