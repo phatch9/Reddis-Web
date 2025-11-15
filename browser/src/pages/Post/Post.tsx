@@ -7,10 +7,10 @@ import { useAuth, UserType } from "../../components/AuthContext";
 import Comment, { CommentMode, CommentDataType } from "../../components/Comment";
 import Loader from "../../components/Loader";
 // Post.tsx exports PostDataType and PostProps
-// import Post, { PostDataType } from "../../components/Post";
-
+import Post, { PostDataType } from "../../components/Post";
 
 // Type Definition
+
 /** the URL parameters. */
 interface FullPostParams extends Record<string, string> {
     postId: string;
@@ -79,6 +79,7 @@ export const FullPost: FC = () => {
     });
 
     /* Render Logic */
+
     if (isFetching) {
         return (
             <div className="flex flex-col justify-center items-center w-full h-screen">
@@ -142,7 +143,7 @@ export const FullPost: FC = () => {
       ) : (
         <div>
           <p className="p-5 text-sm bg-white rounded-xl border-2 md:text-base hover:shadow-sm border-theme-gray-blue">
-            This post has no comments, be the first one to reply!
+            This post has no comments, be the first to reply!
           </p>
         </div>
       )}
