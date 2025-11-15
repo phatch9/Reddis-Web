@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { AxiosError } from 'axios'; // We assume Axios is installed and its types are available
-import Loader from "../../components/Loader.tsx";
-import { Link, useNavigate } from "react-router-dom";
-import AuthConsumer from "../../components/AuthContext.tsx";
-import AppLogo from "../../components/AppLogo.tsx";
+// NOTE: using local mocks below; avoid importing components that are mocked in this file
+// import { AxiosError } from 'axios';
+// import Loader from "../../components/Loader.tsx";
+// import { Link, useNavigate } from "react-router-dom";
+// import AuthConsumer from "../../components/AuthContext.tsx";
+// import AppLogo from "../../components/AppLogo.tsx";
 
 // Mock Types for useMutation
 // Define the expected successful data structure from the API (Same as login)
@@ -14,22 +15,14 @@ interface AuthResponseData {
 }
 
 // Define the expected error structure for validation errors (specific to Register)
-interface ValidationError {
-    username?: string[]; // Array of error messages for this field
-    email?: string[];
-    password?: string[];
-}
-
-interface RegisterErrorBody {
-    message?: string; // For general errors (like server failure)
-    errors: ValidationError; // For validation errors
-}
-
-// Mock AxiosError specific to our register error structure
-type RegisterError = AxiosError<RegisterErrorBody>;
+// (In this mock file we don't need the detailed error interfaces)
+// Use a loose error type for the mock environment
+type RegisterError = any; // Axios-like error shape in tests
 
 interface MutationResult<TData, TError> {
-    mutate: () => void;
+    // include the data generic so the type is used
+    data?: TData;
+    mutate: (vars?: any) => void;
     status: 'idle' | 'loading' | 'error' | 'success';
     error: TError | null;
     reset: () => void;
@@ -60,7 +53,7 @@ function useMutation<TData, TError>(options: {
             setStatus('error');
             setError(err as TError); // Cast to our expected error type
         }
-    }, [options.mutationFn, options.onSuccess]);
+    }, [options]);
 
     return { mutate, status, error: error as TError | null, reset };
 }
@@ -80,13 +73,13 @@ const AuthConsumer = (): AuthContextType => ({
 
 // Mock Components
 const useNavigate = () => (path: string) => console.log(`Navigating to: ${path}`);
-const Link: React.FC<React.PropsWithChildren<{ to: string, className: string }>> = ({ children, to, className }) => (
+const Link: React.FC<React.PropsWithChildren<{ to: string, className?: string }>> = ({ children, to, className }) => (
     <a href={to} className={className} onClick={(e) => { e.preventDefault(); console.log(`Link clicked to: ${to}`); }}>
         {children}
     </a>
 );
 
-const Loader: React.FC<{ forPosts: boolean }> = () => <div className="animate-spin text-theme-orange">Loading...</div>;
+const Loader: React.FC<{ forPosts?: boolean }> = () => <div className="animate-spin text-theme-orange">Loading...</div>;
 const AppLogo: React.FC<React.PropsWithChildren<{ forBanner?: boolean }>> = ({ children }) => (
     <div className='flex items-center space-x-2'>
         <span className='text-3xl font-extrabold text-theme-orange'>&#9733;</span>
@@ -122,27 +115,20 @@ export function Signup() {
             console.log(`Mock API call: Signing up user ${username}...`);
 
             // Mocking the axios call and error structure for Sign up
-            if (username === "fail") {
-                 // Simulate validation errors
-                 throw {
-                    response: {
-                        data: {
-                            errors: {
-                                username: ["Username 'fail' is already taken."],
-                                password: ["Password is too common."],
-                            }
-                        }
-                    }
-                 } as RegisterError;
+           if (username === "fail") {
+              // Simulate validation errors
+                const validationErr: any = Object.assign(new Error("Validation error"), { response: { data: { errors: { username: ["Username 'fail' is already taken."], password: ["Password is too common."] } } } });
+                throw validationErr;
             } else if (username && email && password) {
                 const responseData: AuthResponseData = { token: "fake-jwt", userId: "user-456" };
                 return responseData; // Success data
             }
-            // Fallback error
-            throw { response: { data: { message: "Internal server error." } } } as RegisterError;
+            // Fallback error: attach response data to an Error instance
+          const fallbackErr: any = Object.assign(new Error("Internal server error."), { response: { data: { message: "Internal server error." } } });
+          throw fallbackErr;
             // End Mock Logic
         },
-        onSuccess: () => navigate("/home"),
+        onSuccess: (data) => { login(data); navigate("/home"); },
     });
 
     useEffect(() => {
@@ -175,7 +161,7 @@ export function Signup() {
         username: usernameError,
         email: emailError,
         password: passwordError,
-    } = error?.response?.data?.errors || {};
+    } = (error as any)?.response?.data?.errors || {};
 
     return (
         <div className="flex justify-center items-center min-h-screen md:space-x-10 bg-gray-50 font-inter">
@@ -214,7 +200,7 @@ export function Signup() {
                             className="w-full px-3 py-2 border-b-2 border-gray-300 focus:border-theme-orange transition-colors duration-200 outline-none rounded"
                         />
                         {/* Display Username Errors */}
-                        {usernameError?.map((e, index) => (
+                        {usernameError?.map((e: string, index: number) => (
                             <p className="w-full text-xs font-semibold text-red-600 truncate pt-1" key={index} title={e}>
                                 {e}
                             </p>
@@ -234,7 +220,7 @@ export function Signup() {
                             className="w-full px-3 py-2 border-b-2 border-gray-300 focus:border-theme-orange transition-colors duration-200 outline-none rounded"
                         />
                         {/* Display Email Errors */}
-                        {emailError?.map((e, index) => (
+                        {emailError?.map((e: string, index: number) => (
                             <p className="w-full text-xs font-semibold text-red-600 truncate pt-1" key={index} title={e}>
                                 {e}
                             </p>
@@ -262,7 +248,7 @@ export function Signup() {
                                 <Svg type="eye-close" className="w-6 h-6 mr-2 cursor-pointer text-gray-500 hover:text-theme-orange" onClick={() => setShowPass(true)} />
                             )}
                         </div>
-                        {passwordError?.map((e, index) => (
+                        {passwordError?.map((e: string, index: number) => (
                             <p className="w-full text-xs font-semibold text-red-600 truncate pt-1" key={index} title={e}>
                                 {e}
                             </p>
